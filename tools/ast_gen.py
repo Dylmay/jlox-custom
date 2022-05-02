@@ -4,8 +4,10 @@ from textwrap import dedent, indent
 from functools import reduce
 from collections import namedtuple
 
-Parameter = namedtuple("Parameter", ['type', 'name', 'nullable'], defaults=["", "", False])
-Token = namedtuple("Token", ['name', 'params'])
+Parameter = namedtuple(
+    "Parameter", ["type", "name", "nullable"], defaults=["", "", False]
+)
+Token = namedtuple("Token", ["name", "params"])
 
 
 def has_nullable(token):
@@ -66,7 +68,7 @@ def create_class(token: Parameter, access_level: str, class_name: str) -> str:
 
           @Override
           {access_level} <R> {'@Nullable ' if has_nullable(token) else ''}R accept(Visitor<R> visitor) {{
-            return visitor.visit{token.name}Expr(this);
+            return visitor.visit{token.name}{class_name}(this);
           }}
 
           @Override
@@ -100,10 +102,10 @@ def create_class(token: Parameter, access_level: str, class_name: str) -> str:
     )
 
 
-def create_interface(token) -> str:
+def create_interface(token, class_name) -> str:
     return (
         "@Nullable\n" if has_nullable(token) else ""
-    ) + f"R visit{token.name}Expr({token.name} expr);"
+    ) + f"R visit{token.name}{class_name}({token.name} {class_name.lower()});"
 
 
 def gen_ast(
@@ -116,7 +118,7 @@ def gen_ast(
     access_level="public",
 ):
     # base class information
-    interfaces = "\n\n".join(map(lambda clz: create_interface(clz), tokens))
+    interfaces = "\n\n".join(map(lambda clz: create_interface(clz, class_name), tokens))
     import_str = "\n".join(map(lambda imp: f"import {imp};", imports))
     impl = "\n\n".join(
         map(lambda clz: create_class(clz, access_level, class_name), tokens)

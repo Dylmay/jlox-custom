@@ -14,6 +14,8 @@ public abstract class Expr {
     R visitLiteralExpr(Literal expr);
 
     R visitUnaryExpr(Unary expr);
+
+    R visitVariableExpr(Variable expr);
   }
 
   public abstract <R> R accept(Visitor<R> visitor);
@@ -39,12 +41,9 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Binary i) {
-        return this.left != null
-            && this.left.equals(i.left)
-            && this.operator != null
-            && this.operator.equals(i.operator)
-            && this.right != null
-            && this.right.equals(i.right);
+        return this.left != null && this.left.equals(i.left)
+           && this.operator != null && this.operator.equals(i.operator)
+           && this.right != null && this.right.equals(i.right);
       }
 
       return false;
@@ -84,12 +83,9 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Ternary i) {
-        return this.condition != null
-            && this.condition.equals(i.condition)
-            && this.onTrue != null
-            && this.onTrue.equals(i.onTrue)
-            && this.onFalse != null
-            && this.onFalse.equals(i.onFalse);
+        return this.condition != null && this.condition.equals(i.condition)
+           && this.onTrue != null && this.onTrue.equals(i.onTrue)
+           && this.onFalse != null && this.onFalse.equals(i.onFalse);
       }
 
       return false;
@@ -161,10 +157,8 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Literal i) {
-        return this.value != null
-            && this.value.equals(i.value)
-            && this.pos != null
-            && this.pos.equals(i.pos);
+        return this.value != null && this.value.equals(i.value)
+           && this.pos != null && this.pos.equals(i.pos);
       }
 
       return false;
@@ -201,10 +195,8 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Unary i) {
-        return this.operator != null
-            && this.operator.equals(i.operator)
-            && this.right != null
-            && this.right.equals(i.right);
+        return this.operator != null && this.operator.equals(i.operator)
+           && this.right != null && this.right.equals(i.right);
       }
 
       return false;
@@ -217,6 +209,40 @@ public abstract class Expr {
 
       result = prime * result + ((operator == null) ? 0 : operator.hashCode());
       result = prime * result + ((right == null) ? 0 : right.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Variable extends Expr {
+    public final Token name;
+
+    public Variable(Token name) {
+      this.name = name;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVariableExpr(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Variable i) {
+        return this.name != null && this.name.equals(i.name);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((name == null) ? 0 : name.hashCode());
 
       return result;
     }
