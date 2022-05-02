@@ -1,12 +1,14 @@
 package com.dylmay.jlox.parser;
 
 import com.dylmay.jlox.assets.Expr;
+import com.dylmay.jlox.assets.Stmt;
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
+
+import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
 public class Parser {
   private static class ParseException extends RuntimeException {}
@@ -24,12 +26,36 @@ public class Parser {
     this.current = 0;
   }
 
-  public @Nullable Expr parse() {
-    try {
-      return this.expression();
-    } catch (ParseException exc) {
-      return null;
+  public List<Stmt> parse() {
+    List<Stmt> statements = new ArrayList<>();
+
+    while (!this.isAtEnd())  {
+      statements.add(this.statement());
     }
+
+    return statements;
+  }
+
+  private Stmt statement() {
+    if (match(TokenType.PRINT)) return printStatement();
+
+    return expressionStatement();
+  }
+
+  private Stmt printStatement() {
+    var expr = this.expression();
+
+    consume(TokenType.SEMICOLON, "Expect ';' after value.");
+
+    return new Stmt.Print(expr);
+  }
+
+  private Stmt expressionStatement() {
+    var expr = this.expression();
+
+    consume(TokenType.SEMICOLON, "Expect ';' after expression");
+
+    return new Stmt.Expression(expr);
   }
 
   private Expr expression() {
