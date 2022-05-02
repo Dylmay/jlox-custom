@@ -4,16 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-
 import com.dylmay.jlox.assets.Expr;
 import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.lexer.Lexer;
-import com.dylmay.jlox.parser.Parser;
-
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 public class ParserTest {

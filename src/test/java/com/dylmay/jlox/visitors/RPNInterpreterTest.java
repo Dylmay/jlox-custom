@@ -7,7 +7,6 @@ import com.dylmay.jlox.assets.Expr;
 import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
-
 import org.junit.jupiter.api.Test;
 
 public class RPNInterpreterTest {

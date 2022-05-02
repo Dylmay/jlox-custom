@@ -1,13 +1,12 @@
 package com.dylmay.jlox.parser;
 
-import java.util.List;
-import javax.annotation.Nullable;
-
 import com.dylmay.jlox.assets.Expr;
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
+import java.util.List;
+import javax.annotation.Nullable;
 
 public class Parser {
   private static class ParseException extends RuntimeException {}

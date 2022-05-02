@@ -8,8 +8,6 @@ import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.LoxErrorHandler;
-import com.dylmay.jlox.lexer.Lexer;
-
 import org.junit.jupiter.api.Test;
 
 public class LexerTest {

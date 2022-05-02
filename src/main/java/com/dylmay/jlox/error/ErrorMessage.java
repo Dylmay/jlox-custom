@@ -1,8 +1,7 @@
 package com.dylmay.jlox.error;
 
-import javax.annotation.Nullable;
-
 import com.dylmay.jlox.assets.Position;
+import javax.annotation.Nullable;
 
 public class ErrorMessage {
   private @Nullable String message;

@@ -3,13 +3,6 @@
  */
 package com.dylmay.jlox;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import com.dylmay.jlox.Visitors.AstInterpreter;
 import com.dylmay.jlox.Visitors.Interpreter;
 import com.dylmay.jlox.Visitors.LoxInterpreter;
@@ -18,6 +11,12 @@ import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.lexer.Lexer;
 import com.dylmay.jlox.parser.Parser;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Lox {
   private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance("LoxMain");

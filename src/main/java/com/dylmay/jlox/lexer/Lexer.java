@@ -1,15 +1,14 @@
 package com.dylmay.jlox.lexer;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nullable;
-
 import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.util.CharUtil;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
 
 public class Lexer {
   private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance(Lexer.class);

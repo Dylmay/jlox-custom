@@ -1,17 +1,16 @@
 package com.dylmay.jlox.Visitors;
 
-import javax.annotation.Nullable;
-
 import com.dylmay.jlox.assets.Expr;
-import com.dylmay.jlox.assets.Item;
 import com.dylmay.jlox.assets.Expr.Binary;
 import com.dylmay.jlox.assets.Expr.Grouping;
 import com.dylmay.jlox.assets.Expr.Literal;
 import com.dylmay.jlox.assets.Expr.Ternary;
 import com.dylmay.jlox.assets.Expr.Unary;
+import com.dylmay.jlox.assets.Item;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.util.RuntimeError;
+import javax.annotation.Nullable;
 
 public class LoxInterpreter implements Expr.Visitor<Item>, Interpreter {
 

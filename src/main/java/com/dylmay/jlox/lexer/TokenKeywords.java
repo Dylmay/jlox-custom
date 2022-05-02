@@ -1,10 +1,9 @@
 package com.dylmay.jlox.lexer;
 
+import com.dylmay.jlox.assets.TokenType;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
-
-import com.dylmay.jlox.assets.TokenType;
 
 class TokenKeywords {
   private TokenKeywords() {}
