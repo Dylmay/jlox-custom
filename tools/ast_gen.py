@@ -4,48 +4,15 @@ from textwrap import dedent, indent
 from functools import reduce
 from collections import namedtuple
 
-Parameter = namedtuple("Parameter", "type name nullable", defaults=["", "", False])
-Token = namedtuple("Token", "name params")
+Parameter = namedtuple("Parameter", ['type', 'name', 'nullable'], defaults=["", "", False])
+Token = namedtuple("Token", ['name', 'params'])
 
-OUT_PATH = "./src/main/java/com/dylmay/jlox/assets"
-BASE_NAME = "Expr.java"
-INTERFACE_NAME = "Visitor"
-CLASS_NAME = BASE_NAME.split(".")[0]
-PACKAGE_NAME = OUT_PATH.split("java/")[1].replace("/", ".")
-ACCESS_LEVEL = "public"
-IMPORT_LIST = ["javax.annotation.Nullable"]
-
-TOKENS = [
-    Token(
-        "Binary",
-        [
-            Parameter("Expr", "left"),
-            Parameter("Token", "operator"),
-            Parameter("Expr", "right"),
-        ],
-    ),
-    Token(
-        "Ternary",
-        [
-            Parameter("Expr", "condition"),
-            Parameter("Expr", "onTrue"),
-            Parameter("Expr", "onFalse"),
-        ],
-    ),
-    Token("Grouping", [Parameter("Expr", "expression")]),
-    Token("Literal", [
-        Parameter("Object", "value", True),
-        Parameter("Position", "pos")
-        ]),
-    Token("Unary", [Parameter("Token", "operator"), Parameter("Expr", "right")]),
-]
 
 def has_nullable(token):
     return any(map(lambda param: param.nullable, token.params))
 
 
-
-def create_class(token: Parameter) -> str:
+def create_class(token: Parameter, access_level: str, class_name: str) -> str:
     def create_params():
         return ", ".join(
             map(
@@ -62,7 +29,7 @@ def create_class(token: Parameter) -> str:
     def create_variables():
         return "\n".join(
             map(
-                lambda vara: f"{ACCESS_LEVEL} final {'@Nullable ' if vara.nullable else ''}{vara.type} {vara.name};",
+                lambda vara: f"{access_level} final {'@Nullable ' if vara.nullable else ''}{vara.type} {vara.name};",
                 token.params,
             )
         )
@@ -90,15 +57,15 @@ def create_class(token: Parameter) -> str:
     return (
         dedent(
             f"""\
-        {ACCESS_LEVEL} static class {token.name} extends {CLASS_NAME} {{
+        {access_level} static class {token.name} extends {class_name} {{
         %s
 
-          {ACCESS_LEVEL} {token.name}({create_params()}) {{
+          {access_level} {token.name}({create_params()}) {{
         %s
           }}
 
           @Override
-          {ACCESS_LEVEL} <R> {'@Nullable ' if has_nullable(token) else ''}R accept(Visitor<R> visitor) {{
+          {access_level} <R> {'@Nullable ' if has_nullable(token) else ''}R accept(Visitor<R> visitor) {{
             return visitor.visit{token.name}Expr(this);
           }}
 
@@ -134,39 +101,49 @@ def create_class(token: Parameter) -> str:
 
 
 def create_interface(token) -> str:
-    return ('@Nullable\n' if has_nullable(token) else '') +  f"R visit{token.name}Expr({token.name} expr);"
+    return (
+        "@Nullable\n" if has_nullable(token) else ""
+    ) + f"R visit{token.name}Expr({token.name} expr);"
 
 
-def gen_ast():
+def gen_ast(
+    class_name: str,
+    tokens: list[Token],
+    imports: list[str],
+    out_path: str,
+    package_name: str,
+    interface_name="Visitor",
+    access_level="public",
+):
     # base class information
-    interfaces = "\n\n".join(map(lambda clz: create_interface(clz), TOKENS))
-    imports = "\n".join(map(lambda imp: f"import {imp};", IMPORT_LIST))
-    impl = "\n\n".join(map(lambda clz: create_class(clz), TOKENS))
+    interfaces = "\n\n".join(map(lambda clz: create_interface(clz), tokens))
+    import_str = "\n".join(map(lambda imp: f"import {imp};", imports))
+    impl = "\n\n".join(
+        map(lambda clz: create_class(clz, access_level, class_name), tokens)
+    )
 
-    with open(Path(OUT_PATH) / BASE_NAME, "w", encoding="utf-8") as ast_file:
+    with open(
+        Path(out_path) / (class_name + ".java"), "w", encoding="utf-8"
+    ) as ast_file:
         ast_file.write(
             dedent(
                 f"""\
-            package {PACKAGE_NAME};
+            package {package_name};
             %s
-            {ACCESS_LEVEL} abstract class {CLASS_NAME} {{
-              {ACCESS_LEVEL} interface {INTERFACE_NAME}<R> {{
+            {access_level} abstract class {class_name} {{
+              {access_level} interface {interface_name}<R> {{
             %s
               }}
 
-              {ACCESS_LEVEL} abstract <R> R accept(Visitor<R> visitor);
+              {access_level} abstract <R> R accept(Visitor<R> visitor);
 
             %s
             }}
         """
             )
             % (
-                ("\n" + imports + "\n") if len(IMPORT_LIST) > 0 else "",
+                ("\n" + import_str + "\n") if len(imports) > 0 else "",
                 indent(interfaces, "    "),
                 indent(impl, "  "),
             )
         )
-
-
-if __name__ == "__main__":
-    gen_ast()
