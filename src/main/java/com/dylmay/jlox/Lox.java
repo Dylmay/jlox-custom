@@ -3,10 +3,7 @@
  */
 package com.dylmay.jlox;
 
-import com.dylmay.jlox.Visitors.AstInterpreter;
 import com.dylmay.jlox.Visitors.Interpreter;
-import com.dylmay.jlox.Visitors.LoxInterpreter;
-import com.dylmay.jlox.Visitors.RPNInterpreter;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.lexer.Lexer;
@@ -20,7 +17,7 @@ import java.nio.file.Paths;
 
 public class Lox {
   private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance("LoxMain");
-  private static Interpreter interpreter = new LoxInterpreter();
+  private static final Interpreter interpreter = new Interpreter();
 
   private static final int GOOD_EXIT = 0;
   private static final int HELP_EXIT = 64;
@@ -31,8 +28,8 @@ public class Lox {
 
   public static void main(String[] args) {
     switch (args.length) {
-      case 1 -> Lox.runFile(args[0]);
       case 0 -> Lox.runPrompt();
+      case 1 -> Lox.runFile(args[0]);
       default -> {
         Lox.outputLine("Usage: jlox [script]");
         Lox.exit(HELP_EXIT);
@@ -41,7 +38,7 @@ public class Lox {
 
     if (ERR_HNDLR.hasError()) {
       exit(EXC_EXIT);
-    } else if (LoxErrorHandler.getInstance(LoxInterpreter.class).hasError()) {
+    } else if (LoxErrorHandler.getInstance(Interpreter.class).hasError()) {
       exit(INTERPRET_FAIL_EXIT);
     } else {
       exit(GOOD_EXIT);
@@ -70,8 +67,9 @@ public class Lox {
 
     if (expr != null) {
       var res = interpreter.interpret(expr);
-      if (!res.isEmpty()) {
-        System.out.println(res);
+
+      for (var line : res) {
+        System.out.println(line);
       }
     }
   }
@@ -119,7 +117,6 @@ public class Lox {
       ------------------------------
       | .help - Display help       |
       | .exit - Exit program       |
-      | .intr - Change interpreter |
       -------------------------""");
   }
 
@@ -131,38 +128,6 @@ public class Lox {
       printHelp();
     } else if (cmd.equals("exit")) {
       exit(GOOD_EXIT);
-    } else if (choice.equals("intr")) {
-      if (args.length == 2) {
-        int selection;
-
-        try {
-          selection = Integer.valueOf(args[1]);
-        } catch (NumberFormatException exc) {
-          selection = -1;
-        }
-
-        if (selection == 1) {
-          Lox.interpreter = new AstInterpreter();
-        } else if (selection == 2) {
-          Lox.interpreter = new RPNInterpreter();
-        } else {
-          Lox.outputLine("Unknown selection: " + args[1]);
-          return;
-        }
-
-        Lox.outputLine("Selected interpreter: " + Lox.interpreter.name());
-
-      } else {
-        Lox.outputLine("Current interpreter: " + Lox.interpreter.name());
-        Lox.outputLine(
-            """
-            Interpreter selection: .intr {interpreterNumber}
-            Available interpreter:
-              1. LoxInterpreter (default)
-              2. AstInterpreter
-              3. RPNInterpreter
-            """);
-      }
     } else {
       Lox.outputLine("Unknown command ." + choice);
     }
