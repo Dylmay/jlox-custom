@@ -13,6 +13,10 @@ plugins {
     id 'org.checkerframework' version '0.6.10'
 }
 
+ext {
+    loxMainClass = 'com.dylmay.JLox.Lox'
+}
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -28,7 +32,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'com.dylmay.JLox.Lox'
+    mainClass = loxMainClass
 }
 
 tasks.named('test') {
@@ -36,9 +40,11 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-task repl( type: Exec, dependsOn: assemble ){
-    group = "Execution"
+task repl( type: JavaExec, dependsOn: assemble ){
+    group = 'Application'
     standardInput = System.in
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = loxMainClass
 }
 
 spotless {
