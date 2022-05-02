@@ -14,7 +14,7 @@ plugins {
 }
 
 ext {
-    loxMainClass = 'com.dylmay.JLox.Lox'
+    loxMainClass = 'com.dylmay.jlox.Lox'
 }
 
 repositories {
@@ -40,6 +40,10 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.named('build') {
+    dependsOn 'spotlessApply'
+}
+
 task repl( type: JavaExec, dependsOn: assemble ){
     group = 'Application'
     standardInput = System.in
@@ -62,7 +66,9 @@ java {
 checkerFramework {
     checkers = [
         'org.checkerframework.checker.nullness.NullnessChecker',
-        'org.checkerframework.checker.units.UnitsChecker'
+        'org.checkerframework.checker.units.UnitsChecker',
+        'org.checkerframework.checker.signature.SignatureChecker',
+        'org.checkerframework.checker.mustcall.MustCallChecker'
     ]
 }
 

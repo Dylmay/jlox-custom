@@ -1,4 +1,4 @@
-package com.dylmay.JLox.Assets;
+package com.dylmay.jlox.assets;
 
 import javax.annotation.Nullable;
 

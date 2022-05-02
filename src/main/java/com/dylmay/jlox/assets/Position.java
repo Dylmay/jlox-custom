@@ -1,4 +1,4 @@
-package com.dylmay.JLox.Assets;
+package com.dylmay.jlox.assets;
 
 public record Position(int lineNum, int lineOffset) {
   public static final Position NO_POSITION = new Position(-1, -1);

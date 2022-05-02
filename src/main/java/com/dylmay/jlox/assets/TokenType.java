@@ -1,4 +1,4 @@
-package com.dylmay.JLox.Assets;
+package com.dylmay.jlox.assets;
 
 public enum TokenType {
   // Single char tokens

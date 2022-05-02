@@ -1,16 +1,18 @@
-package com.dylmay.JLox.Lexer;
+package com.dylmay.jlox.lexer;
 
-import com.dylmay.JLox.Assets.Position;
-import com.dylmay.JLox.Assets.Token;
-import com.dylmay.JLox.Assets.TokenType;
-import com.dylmay.JLox.LoxErrorHandler;
-import com.dylmay.JLox.Util.CharUtil;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
+import com.dylmay.jlox.assets.Position;
+import com.dylmay.jlox.assets.Token;
+import com.dylmay.jlox.assets.TokenType;
+import com.dylmay.jlox.error.ErrorMessage;
+import com.dylmay.jlox.error.LoxErrorHandler;
+import com.dylmay.jlox.util.CharUtil;
+
 public class Lexer {
-  private static final LoxErrorHandler ERR_HNDL = LoxErrorHandler.getInstance(Lexer.class);
+  private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance(Lexer.class);
   private final List<Token> tokens;
   private final String src;
 
@@ -138,7 +140,10 @@ public class Lexer {
         } else if (CharUtil.isAlpha(nextChar)) {
           procIdentifier();
         } else {
-          ERR_HNDL.error(this.getCurPos(), "Unexpected character: " + nextChar);
+          ERR_HNDLR.report(
+              new ErrorMessage()
+                  .message("Unexpected character: " + nextChar)
+                  .position(this.getCurPos()));
         }
 
         break;
@@ -169,15 +174,17 @@ public class Lexer {
   }
 
   private void procBlockComment() {
+    var badBlock = new ErrorMessage().message("Unterminated comment. must end with \"*/\"");
+
     while (true) {
       if (this.isEOF()) {
-        ERR_HNDL.error(this.getCurPos(), "Unterminated comment. Must end with \"*/\"");
+        ERR_HNDLR.report(badBlock.position(this.getCurPos()));
         return;
       }
 
       if (this.match('*')) {
         if (this.isEOF()) {
-          ERR_HNDL.error(this.getCurPos(), "Unterminated comment. Must end with \"*/\"");
+          ERR_HNDLR.report(badBlock.position(this.getCurPos()));
           return;
         }
 
@@ -194,8 +201,10 @@ public class Lexer {
     while (peek() != stringIdentifier && !this.isEOF()) advance();
 
     if (this.isEOF()) {
-      ERR_HNDL.error(
-          this.getCurPos(), "Unterminated string. Must end with \"" + stringIdentifier + '"');
+      ERR_HNDLR.report(
+          new ErrorMessage()
+              .message("Unterminated string. Must end with \"" + stringIdentifier + '"')
+              .position(this.getCurPos()));
       return;
     }
 

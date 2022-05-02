@@ -1,4 +1,4 @@
-package com.dylmay.JLox.Util;
+package com.dylmay.jlox.util;
 
 public final class CharUtil {
   private CharUtil() {}

@@ -1,4 +1,4 @@
-package com.dylmay.JLox.Assets;
+package com.dylmay.jlox.assets;
 
 import javax.annotation.Nullable;
 
@@ -144,9 +144,11 @@ public abstract class Expr {
 
   public static class Literal extends Expr {
     public final @Nullable Object value;
+    public final Position pos;
 
-    public Literal(@Nullable Object value) {
+    public Literal(@Nullable Object value, Position pos) {
       this.value = value;
+      this.pos = pos;
     }
 
     @Override
@@ -159,7 +161,10 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Literal i) {
-        return this.value != null && this.value.equals(i.value);
+        return this.value != null
+            && this.value.equals(i.value)
+            && this.pos != null
+            && this.pos.equals(i.pos);
       }
 
       return false;
@@ -171,6 +176,7 @@ public abstract class Expr {
       int result = 1;
 
       result = prime * result + ((value == null) ? 0 : value.hashCode());
+      result = prime * result + ((pos == null) ? 0 : pos.hashCode());
 
       return result;
     }

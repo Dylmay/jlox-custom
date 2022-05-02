@@ -7,7 +7,7 @@ from collections import namedtuple
 Parameter = namedtuple("Parameter", "type name nullable", defaults=["", "", False])
 Token = namedtuple("Token", "name params")
 
-OUT_PATH = "./src/main/java/com/dylmay/JLox/Assets"
+OUT_PATH = "./src/main/java/com/dylmay/jlox/assets"
 BASE_NAME = "Expr.java"
 INTERFACE_NAME = "Visitor"
 CLASS_NAME = BASE_NAME.split(".")[0]
@@ -33,9 +33,16 @@ TOKENS = [
         ],
     ),
     Token("Grouping", [Parameter("Expr", "expression")]),
-    Token("Literal", [Parameter("Object", "value", True)]),
+    Token("Literal", [
+        Parameter("Object", "value", True),
+        Parameter("Position", "pos")
+        ]),
     Token("Unary", [Parameter("Token", "operator"), Parameter("Expr", "right")]),
 ]
+
+def has_nullable(token):
+    return any(map(lambda param: param.nullable, token.params))
+
 
 
 def create_class(token: Parameter) -> str:
@@ -91,7 +98,7 @@ def create_class(token: Parameter) -> str:
           }}
 
           @Override
-          {ACCESS_LEVEL} <R> R accept(Visitor<R> visitor) {{
+          {ACCESS_LEVEL} <R> {'@Nullable ' if has_nullable(token) else ''}R accept(Visitor<R> visitor) {{
             return visitor.visit{token.name}Expr(this);
           }}
 
@@ -127,7 +134,7 @@ def create_class(token: Parameter) -> str:
 
 
 def create_interface(token) -> str:
-    return f"R visit{token.name}Expr({token.name} expr);"
+    return ('@Nullable\n' if has_nullable(token) else '') +  f"R visit{token.name}Expr({token.name} expr);"
 
 
 def gen_ast():

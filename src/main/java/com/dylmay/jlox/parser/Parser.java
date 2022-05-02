@@ -1,11 +1,13 @@
-package com.dylmay.JLox.Parser;
+package com.dylmay.jlox.parser;
 
-import com.dylmay.JLox.Assets.Expr;
-import com.dylmay.JLox.Assets.Token;
-import com.dylmay.JLox.Assets.TokenType;
-import com.dylmay.JLox.LoxErrorHandler;
 import java.util.List;
-import java.util.Optional;
+import javax.annotation.Nullable;
+
+import com.dylmay.jlox.assets.Expr;
+import com.dylmay.jlox.assets.Token;
+import com.dylmay.jlox.assets.TokenType;
+import com.dylmay.jlox.error.ErrorMessage;
+import com.dylmay.jlox.error.LoxErrorHandler;
 
 public class Parser {
   private static class ParseException extends RuntimeException {}
@@ -14,7 +16,7 @@ public class Parser {
     Expr expr();
   }
 
-  private static final LoxErrorHandler ERR_HDNL = LoxErrorHandler.getInstance(Parser.class);
+  private static final LoxErrorHandler ERR_HDNLR = LoxErrorHandler.getInstance(Parser.class);
   private final List<Token> tokens;
   private int current;
 
@@ -23,11 +25,11 @@ public class Parser {
     this.current = 0;
   }
 
-  public Optional<Expr> parse() {
+  public @Nullable Expr parse() {
     try {
-      return Optional.of(this.expression());
+      return this.expression();
     } catch (ParseException exc) {
-      return Optional.empty();
+      return null;
     }
   }
 
@@ -68,12 +70,12 @@ public class Parser {
   }
 
   private Expr primary() {
-    if (match(TokenType.FALSE)) return new Expr.Literal(false);
-    if (match(TokenType.TRUE)) return new Expr.Literal(true);
-    if (match(TokenType.NIL)) return new Expr.Literal(null);
+    if (match(TokenType.FALSE)) return new Expr.Literal(false, this.previous().position());
+    if (match(TokenType.TRUE)) return new Expr.Literal(true, this.previous().position());
+    if (match(TokenType.NIL)) return new Expr.Literal(null, this.previous().position());
 
     if (match(TokenType.NUMBER, TokenType.STRING)) {
-      return new Expr.Literal(this.previous().literal());
+      return new Expr.Literal(this.previous().literal(), this.previous().position());
     }
 
     if (match(TokenType.LEFT_PAREN)) {
@@ -160,7 +162,8 @@ public class Parser {
   }
 
   private ParseException error(Token token, String message) {
-    ERR_HDNL.report(token, message);
+    ERR_HDNLR.report(
+        new ErrorMessage().where(token.lexeme()).position(token.position()).message(message));
 
     return new ParseException();
   }

@@ -1,12 +1,12 @@
-package com.dylmay.JLox.Visitors;
+package com.dylmay.jlox.Visitors;
 
-import com.dylmay.JLox.Assets.Expr;
+import com.dylmay.jlox.assets.Expr;
 
-public class RPNPrinter implements Expr.Visitor<String>, Printer {
+public class RPNInterpreter implements Expr.Visitor<String>, Interpreter {
   public static final String PRINTER_NAME = "RPNPrinter";
 
   @Override
-  public String traverse(Expr expr) {
+  public String interpret(Expr expr) {
     return expr.accept(this);
   }
 
