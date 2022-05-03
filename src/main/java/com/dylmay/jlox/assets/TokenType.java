@@ -36,7 +36,7 @@ public enum TokenType {
   CLASS,
   ELSE,
   FALSE,
-  FUN,
+  FN,
   FOR,
   IF,
   NIL,
@@ -46,7 +46,7 @@ public enum TokenType {
   SUPER,
   THIS,
   TRUE,
-  VAR,
+  LET,
   WHILE,
 
   EOF,

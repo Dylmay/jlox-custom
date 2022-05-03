@@ -17,7 +17,7 @@ class TokenKeywords {
     KEYWORDS.put("else", TokenType.ELSE);
     KEYWORDS.put("false", TokenType.FALSE);
     KEYWORDS.put("for", TokenType.FOR);
-    KEYWORDS.put("fun", TokenType.FUN);
+    KEYWORDS.put("fn", TokenType.FN);
     KEYWORDS.put("if", TokenType.IF);
     KEYWORDS.put("nil", TokenType.NIL);
     KEYWORDS.put("or", TokenType.OR);
@@ -25,7 +25,7 @@ class TokenKeywords {
     KEYWORDS.put("super", TokenType.SUPER);
     KEYWORDS.put("this", TokenType.THIS);
     KEYWORDS.put("true", TokenType.TRUE);
-    KEYWORDS.put("var", TokenType.VAR);
+    KEYWORDS.put("let", TokenType.LET);
     KEYWORDS.put("while", TokenType.WHILE);
     KEYWORDS.put("return", TokenType.RETURN);
   }
