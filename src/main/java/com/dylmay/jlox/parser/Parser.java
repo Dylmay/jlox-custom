@@ -6,9 +6,9 @@ import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
-
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 public class Parser {
   private static class ParseException extends RuntimeException {}
@@ -29,15 +29,43 @@ public class Parser {
   public List<Stmt> parse() {
     List<Stmt> statements = new ArrayList<>();
 
-    while (!this.isAtEnd())  {
-      statements.add(this.statement());
+    while (!this.isAtEnd()) {
+      var stmt = this.declaration();
+
+      if (stmt != null) {
+        statements.add(stmt);
+      }
     }
 
     return statements;
   }
 
+  private @Nullable Stmt declaration() {
+    try {
+      if (match(TokenType.LET)) {
+        return this.varDeclaration();
+      }
+
+      return statement();
+    } catch (ParseException exc) {
+      this.synchronize();
+      return null;
+    }
+  }
+
+  private Stmt varDeclaration() {
+    Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
+    Expr initializer = match(TokenType.EQUAL) ? expression() : null;
+
+    consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+
+    return new Stmt.Var(name, initializer);
+  }
+
   private Stmt statement() {
     if (match(TokenType.PRINT)) return printStatement();
+
+    if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(this.block());
 
     return expressionStatement();
   }
@@ -58,8 +86,41 @@ public class Parser {
     return new Stmt.Expression(expr);
   }
 
+  private List<Stmt> block() {
+    var stmts = new ArrayList<Stmt>();
+
+    while (!check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      var decl = this.declaration();
+
+      if (decl != null) {
+        stmts.add(decl);
+      }
+    }
+
+    consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+
+    return stmts;
+  }
+
   private Expr expression() {
-    return this.ternary();
+    return this.assignment();
+  }
+
+  private Expr assignment() {
+    var expr = this.ternary();
+
+    if (match(TokenType.EQUAL)) {
+      var equals = this.previous();
+      var value = this.assignment();
+
+      if (expr instanceof Expr.Variable variable) {
+        return new Expr.Assign(variable.name, value);
+      }
+
+      this.error(equals, "Invalid assignment target");
+    }
+
+    return expr;
   }
 
   private Expr equality() {
@@ -95,12 +156,24 @@ public class Parser {
   }
 
   private Expr primary() {
-    if (match(TokenType.FALSE)) return new Expr.Literal(false, this.previous().position());
-    if (match(TokenType.TRUE)) return new Expr.Literal(true, this.previous().position());
-    if (match(TokenType.NIL)) return new Expr.Literal(null, this.previous().position());
+    if (match(TokenType.FALSE)) {
+      return new Expr.Literal(false, this.previous().position());
+    }
+
+    if (match(TokenType.TRUE)) {
+      return new Expr.Literal(true, this.previous().position());
+    }
+
+    if (match(TokenType.NIL)) {
+      return new Expr.Literal(null, this.previous().position());
+    }
 
     if (match(TokenType.NUMBER, TokenType.STRING)) {
       return new Expr.Literal(this.previous().literal(), this.previous().position());
+    }
+
+    if (match(TokenType.EQUAL)) {
+      return new Expr.Variable(this.previous());
     }
 
     if (match(TokenType.LEFT_PAREN)) {
@@ -109,6 +182,10 @@ public class Parser {
       this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
 
       return new Expr.Grouping(expr);
+    }
+
+    if (match(TokenType.IDENTIFIER)) {
+      return new Expr.Variable(this.previous());
     }
 
     throw this.error(this.peek(), "Expected expression.");
@@ -201,11 +278,11 @@ public class Parser {
       switch (this.peek().type()) {
         case CLASS:
         case FOR:
-        case FUN:
+        case FN:
         case IF:
         case PRINT:
         case RETURN:
-        case VAR:
+        case LET:
         case WHILE:
           return;
 
