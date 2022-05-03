@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from expr_gen import gen_expr
 from stmt_gen import gen_stmt
 
