@@ -1,44 +1,38 @@
-package com.dylmay.jlox.Visitors;
+package com.dylmay.jlox.interpretor;
 
 import com.dylmay.jlox.assets.Expr;
-import com.dylmay.jlox.assets.Expr.Binary;
-import com.dylmay.jlox.assets.Expr.Grouping;
-import com.dylmay.jlox.assets.Expr.Literal;
-import com.dylmay.jlox.assets.Expr.Ternary;
-import com.dylmay.jlox.assets.Expr.Unary;
-import com.dylmay.jlox.assets.Expr.Variable;
 import com.dylmay.jlox.assets.Item;
+import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Stmt;
-import com.dylmay.jlox.assets.Stmt.Expression;
-import com.dylmay.jlox.assets.Stmt.Print;
-import com.dylmay.jlox.assets.Stmt.Var;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.util.RuntimeError;
-
-import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.Nullable;
 
-public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<String> {
-  private static final LoxErrorHandler ERR_HNDLR =
-      LoxErrorHandler.getInstance(Interpreter.class);
+public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
+  private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance(Interpreter.class);
 
-  @SuppressWarnings("nullness")
+  private Environment env;
+
+  public Interpreter() {
+    this.env = new Environment();
+  }
+
   @Override
-  public Item visitBinaryExpr(Binary expr) {
+  @SuppressWarnings("nullness")
+  public Item visitBinaryExpr(Expr.Binary expr) {
     Item left = this.evaluate(expr.left);
     Item right = this.evaluate(expr.right);
 
     switch (expr.operator.type()) {
       case MINUS:
         assertIsNumber(left, right);
-        return new Item(left.as(double.class) - right.as(double.class), expr.operator.position());
+        return new Item(left.as(Double.class) - right.as(Double.class), expr.operator.position());
 
       case SLASH:
         assertIsNumber(left, right);
-        return new Item(left.as(double.class) / right.as(double.class), expr.operator.position());
+        return new Item(left.as(Double.class) / right.as(Double.class), expr.operator.position());
 
       case PLUS:
         if (left.result() instanceof Double ld && right.result() instanceof Double rd)
@@ -50,40 +44,43 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<String> {
 
       case STAR:
         assertIsNumber(left, right);
-        return new Item(left.as(double.class) * right.as(double.class), expr.operator.position());
+        return new Item(left.as(Double.class) * right.as(Double.class), expr.operator.position());
 
       case GREATER:
         assertIsNumber(left, right);
-        return new Item(left.as(double.class) > right.as(double.class), expr.operator.position());
+        return new Item(left.as(Double.class) > right.as(Double.class), expr.operator.position());
 
       case GREATER_EQUAL:
         assertIsNumber(left, right);
-        return new Item(left.as(double.class) >= right.as(double.class), expr.operator.position());
+        return new Item(left.as(Double.class) >= right.as(Double.class), expr.operator.position());
 
       case LESS:
         assertIsNumber(left, right);
-        return new Item(left.as(double.class) < right.as(double.class), expr.operator.position());
+        return new Item(left.as(Double.class) < right.as(Double.class), expr.operator.position());
 
       case LESS_EQUAL:
         assertIsNumber(left, right);
-        return new Item(left.as(double.class) <= right.as(double.class), expr.operator.position());
+        return new Item(left.as(Double.class) <= right.as(Double.class), expr.operator.position());
 
       case BANG_EQUAL:
         assertIsNumber(left, right);
         return new Item(
-            !this.isEqual(left.as(double.class), right.as(double.class)), expr.operator.position());
+            !this.isEqual(left.as(Double.class), right.as(Double.class)), expr.operator.position());
 
       case EQUAL_EQUAL:
         assertIsNumber(left, right);
         return new Item(
-            this.isEqual(left.as(double.class), right.as(double.class)), expr.operator.position());
+            this.isEqual(left.as(Double.class), right.as(Double.class)), expr.operator.position());
+
+      case COMMA:
+        return right;
     }
 
     throw new RuntimeError(expr.operator.position(), "Unknown Binary Expression");
   }
 
   @Override
-  public Item visitTernaryExpr(Ternary expr) {
+  public Item visitTernaryExpr(Expr.Ternary expr) {
     var condition = this.evaluate(expr.condition);
 
     if (condition.result() instanceof Boolean || condition.result() instanceof Double) {
@@ -98,18 +95,18 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<String> {
   }
 
   @Override
-  public Item visitGroupingExpr(Grouping expr) {
+  public Item visitGroupingExpr(Expr.Grouping expr) {
     return this.evaluate(expr.expression);
   }
 
   @Override
-  public @Nullable Item visitLiteralExpr(Literal expr) {
+  public @Nullable Item visitLiteralExpr(Expr.Literal expr) {
     return new Item(expr.value, expr.pos);
   }
 
   @Override
   @SuppressWarnings("nullness")
-  public Item visitUnaryExpr(Unary expr) {
+  public Item visitUnaryExpr(Expr.Unary expr) {
     Item right = this.evaluate(expr.right);
 
     switch (expr.operator.type()) {
@@ -146,27 +143,19 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<String> {
 
   private void assertIsNumber(Item... values) {
     for (var item : values) {
-      if (!item.is(double.class)) {
+      if (!item.is(Double.class)) {
         throw new RuntimeError(item.position(), "Operand must be a number");
       }
     }
   }
 
-  private String execute(Stmt stmt) {
+  private Void execute(Stmt stmt) {
     return stmt.accept(this);
   }
 
-  public List<String> interpret(List<Stmt> statements) throws RuntimeError {
-    List<String> interpretations = new ArrayList<>();
-
+  public void interpret(List<Stmt> statements) throws RuntimeError {
     try {
-      for (var stmt : statements) {
-        var result = this.execute(stmt);
-
-        if(!result.isEmpty()) {
-          interpretations.add(this.execute(stmt));
-        }
-      }
+      statements.forEach(this::execute);
     } catch (RuntimeError error) {
       var msg = error.getMessage();
       var issue = new ErrorMessage().position(error.position);
@@ -177,8 +166,6 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<String> {
 
       ERR_HNDLR.report(issue);
     }
-
-    return interpretations;
   }
 
   private String stringify(@Nullable Object obj) {
@@ -196,17 +183,77 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<String> {
   }
 
   @Override
-  public String visitExpressionStmt(Expression stmt) {
+  public Void visitExpressionStmt(Stmt.Expression stmt) {
     this.evaluate(stmt.expr);
-
-    return "";
+    return null;
   }
 
   @Override
-  public String visitPrintStmt(Print stmt) {
-    var result = this.evaluate(stmt.expression);
+  public Void visitPrintStmt(Stmt.Print stmt) {
+    var result = this.evaluate(stmt.expr);
 
-    return result != null ? this.stringify(result.result()) : "";
+    System.out.println(this.stringify(result.result()));
+
+    return null;
   }
 
+  @Override
+  @SuppressWarnings("nullable")
+  public Void visitVarStmt(Stmt.Var stmt) {
+    Object value = null;
+
+    if (stmt.initializer != null) {
+      value = this.evaluate(stmt.initializer).result();
+    }
+
+    if (!this.env.define(stmt.name.lexeme(), value)) {
+      throw new RuntimeError(
+          stmt.name.position(), "Variable '" + stmt.name.lexeme() + "' is not defined.");
+    }
+
+    // return stmt.name.lexeme() + " ==> " + (value != null ? value.toString() : "nil");
+    return null;
+  }
+
+  @Override
+  public Item visitVariableExpr(Expr.Variable expr) {
+    // TODO: tidy up to use object
+    return new Item(this.env.get(expr.name), Position.NO_POSITION);
+  }
+
+  @Override
+  public Item visitAssignExpr(Expr.Assign expr) {
+    var value = this.evaluate(expr.value);
+
+    if (!this.env.assign(expr.name.lexeme(), value != null ? value.result() : null)) {
+      throw new RuntimeError(
+          expr.name.position(), "Undefined variable '" + expr.name.lexeme() + "'.");
+    }
+
+    return value;
+  }
+
+  @Override
+  public Void visitBlockStmt(Stmt.Block stmt) {
+    this.executeBlock(stmt.stmts, new Environment(this.env));
+
+    return null;
+  }
+
+  private Void executeBlock(List<Stmt> statements, Environment newEnv) {
+    var prevEnv = this.env;
+
+    try {
+      this.env = newEnv;
+
+      for (Stmt stmt : statements) {
+        this.execute(stmt);
+      }
+
+    } finally {
+      this.env = prevEnv;
+    }
+
+    return null;
+  }
 }
