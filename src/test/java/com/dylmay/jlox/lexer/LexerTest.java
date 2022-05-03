@@ -78,7 +78,7 @@ public class LexerTest {
   @Test
   void testKeywordTokenization() {
     final var keywordTokens =
-        "and class else false fun for if nil or print return super this true var while\n";
+        "and class else false fn for if nil or print return super this true let while\n";
 
     var lexerTokens = new Lexer(keywordTokens).scanTokens();
 
@@ -87,18 +87,18 @@ public class LexerTest {
       new Token(TokenType.CLASS, "class", null, new Position(1, 4)),
       new Token(TokenType.ELSE, "else", null, new Position(1, 10)),
       new Token(TokenType.FALSE, "false", null, new Position(1, 15)),
-      new Token(TokenType.FUN, "fun", null, new Position(1, 21)),
-      new Token(TokenType.FOR, "for", null, new Position(1, 25)),
-      new Token(TokenType.IF, "if", null, new Position(1, 29)),
-      new Token(TokenType.NIL, "nil", null, new Position(1, 32)),
-      new Token(TokenType.OR, "or", null, new Position(1, 36)),
-      new Token(TokenType.PRINT, "print", null, new Position(1, 39)),
-      new Token(TokenType.RETURN, "return", null, new Position(1, 45)),
-      new Token(TokenType.SUPER, "super", null, new Position(1, 52)),
-      new Token(TokenType.THIS, "this", null, new Position(1, 58)),
-      new Token(TokenType.TRUE, "true", null, new Position(1, 63)),
-      new Token(TokenType.VAR, "var", null, new Position(1, 68)),
-      new Token(TokenType.WHILE, "while", null, new Position(1, 72)),
+      new Token(TokenType.FN, "fn", null, new Position(1, 21)),
+      new Token(TokenType.FOR, "for", null, new Position(1, 24)),
+      new Token(TokenType.IF, "if", null, new Position(1, 28)),
+      new Token(TokenType.NIL, "nil", null, new Position(1, 31)),
+      new Token(TokenType.OR, "or", null, new Position(1, 35)),
+      new Token(TokenType.PRINT, "print", null, new Position(1, 38)),
+      new Token(TokenType.RETURN, "return", null, new Position(1, 44)),
+      new Token(TokenType.SUPER, "super", null, new Position(1, 51)),
+      new Token(TokenType.THIS, "this", null, new Position(1, 57)),
+      new Token(TokenType.TRUE, "true", null, new Position(1, 62)),
+      new Token(TokenType.LET, "let", null, new Position(1, 67)),
+      new Token(TokenType.WHILE, "while", null, new Position(1, 71)),
       new Token(TokenType.EOF, "\n", null, new Position(2, 0))
     };
 
@@ -136,13 +136,13 @@ public class LexerTest {
          * Lox example class
          */
         class LoxCode {
-          fun helloName(name) {
-            var helloStr = 'Hello' + name;
+          fn helloName(name) {
+            let helloStr = 'Hello' + name;
 
             return helloStr;
           }
 
-          fun main() {
+          fn main() {
             // prints HelloDylan forever
             while (true)
               print helloWorld('Dylan');
@@ -165,13 +165,13 @@ public class LexerTest {
       new Token(TokenType.CLASS, "class", null, new Position(5, 0)),
       new Token(TokenType.IDENTIFIER, "LoxCode", null, new Position(5, 6)),
       new Token(TokenType.LEFT_BRACE, "{", null, new Position(5, 14)),
-      new Token(TokenType.FUN, "fun", null, new Position(6, 2)),
-      new Token(TokenType.IDENTIFIER, "helloName", null, new Position(6, 6)),
-      new Token(TokenType.LEFT_PAREN, "(", null, new Position(6, 15)),
-      new Token(TokenType.IDENTIFIER, "name", null, new Position(6, 16)),
-      new Token(TokenType.RIGHT_PAREN, ")", null, new Position(6, 20)),
-      new Token(TokenType.LEFT_BRACE, "{", null, new Position(6, 22)),
-      new Token(TokenType.VAR, "var", null, new Position(7, 4)),
+      new Token(TokenType.FN, "fn", null, new Position(6, 2)),
+      new Token(TokenType.IDENTIFIER, "helloName", null, new Position(6, 5)),
+      new Token(TokenType.LEFT_PAREN, "(", null, new Position(6, 14)),
+      new Token(TokenType.IDENTIFIER, "name", null, new Position(6, 15)),
+      new Token(TokenType.RIGHT_PAREN, ")", null, new Position(6, 19)),
+      new Token(TokenType.LEFT_BRACE, "{", null, new Position(6, 21)),
+      new Token(TokenType.LET, "let", null, new Position(7, 4)),
       new Token(TokenType.IDENTIFIER, "helloStr", null, new Position(7, 8)),
       new Token(TokenType.EQUAL, "=", null, new Position(7, 17)),
       new Token(TokenType.STRING, "'Hello'", "Hello", new Position(7, 19)),
@@ -182,11 +182,11 @@ public class LexerTest {
       new Token(TokenType.IDENTIFIER, "helloStr", null, new Position(9, 11)),
       new Token(TokenType.SEMICOLON, ";", null, new Position(9, 19)),
       new Token(TokenType.RIGHT_BRACE, "}", null, new Position(10, 2)),
-      new Token(TokenType.FUN, "fun", null, new Position(12, 2)),
-      new Token(TokenType.IDENTIFIER, "main", null, new Position(12, 6)),
-      new Token(TokenType.LEFT_PAREN, "(", null, new Position(12, 10)),
-      new Token(TokenType.RIGHT_PAREN, ")", null, new Position(12, 11)),
-      new Token(TokenType.LEFT_BRACE, "{", null, new Position(12, 13)),
+      new Token(TokenType.FN, "fn", null, new Position(12, 2)),
+      new Token(TokenType.IDENTIFIER, "main", null, new Position(12, 5)),
+      new Token(TokenType.LEFT_PAREN, "(", null, new Position(12, 9)),
+      new Token(TokenType.RIGHT_PAREN, ")", null, new Position(12, 10)),
+      new Token(TokenType.LEFT_BRACE, "{", null, new Position(12, 12)),
       new Token(TokenType.WHILE, "while", null, new Position(14, 4)),
       new Token(TokenType.LEFT_PAREN, "(", null, new Position(14, 10)),
       new Token(TokenType.TRUE, "true", null, new Position(14, 11)),
