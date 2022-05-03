@@ -1,0 +1,20 @@
+print "Hello " + "World"; // Prints hello world
+print "one";
+print true;
+print 2 + 3;
+
+let a = 10;
+let b = 20;
+let c = 30;
+
+{
+  let lvlOne = "lev1";
+  {
+    let lvlTwo = "lev2";
+    print a;
+    print b;
+    print c;
+    print lvlOne;
+    print lvlTwo;
+  }
+}

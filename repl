@@ -1,0 +1,2 @@
+#!/usr/bin/zsh
+./gradlew repl --console=plain
