@@ -3,9 +3,9 @@
  */
 package com.dylmay.jlox;
 
-import com.dylmay.jlox.Visitors.Interpreter;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
+import com.dylmay.jlox.interpretor.Interpreter;
 import com.dylmay.jlox.lexer.Lexer;
 import com.dylmay.jlox.parser.Parser;
 import java.io.BufferedReader;
@@ -65,13 +65,7 @@ public class Lox {
     var expr = new Parser(tokens).parse();
     if (LoxErrorHandler.getInstance(Parser.class).hasError()) return;
 
-    if (expr != null) {
-      var res = interpreter.interpret(expr);
-
-      for (var line : res) {
-        System.out.println(line);
-      }
-    }
+    interpreter.interpret(expr);
   }
 
   public static void runPrompt() {
@@ -79,18 +73,37 @@ public class Lox {
 
     try (var input = new InputStreamReader(System.in);
         var reader = new BufferedReader(input)) {
+
+      int depth = 0;
+      StringBuilder text = new StringBuilder();
+
       while (true) {
-        System.out.print("> ");
-        var response = reader.readLine();
+        var response = Lox.promptUser(reader);
 
-        if (response == null || response.isBlank()) continue;
+        if (response.isBlank()) continue;
 
-        String line = response.trim();
+        if (Lox.isCommand(response)) {
+          parseCommand(response.substring(1));
+          continue;
+        }
 
-        if (line.charAt(0) == '.') {
-          parseCommand(line.substring(1));
+        var finalChar = response.charAt(response.length() - 1);
+
+        text.append(response);
+
+        if (finalChar == '{') {
+          depth++;
+        } else if (finalChar == '}') {
+          depth = Math.max(depth - 1, 0);
         } else {
-          runLox(line);
+          text.append(";");
+        }
+
+        text.append('\n');
+
+        if (depth == 0) {
+          runLox(text.toString());
+          text = new StringBuilder();
         }
 
         resetAll();
@@ -103,6 +116,18 @@ public class Lox {
     }
   }
 
+  private static String promptUser(BufferedReader reader) throws IOException {
+    System.out.print("> ");
+
+    var response = reader.readLine();
+
+    return response != null ? response.trim() : "";
+  }
+
+  private static boolean isCommand(String str) {
+    return str.charAt(0) == '.';
+  }
+
   private static void printWelcome() {
     System.out.println("""
       Welcome to Lox v0.2.
@@ -112,11 +137,11 @@ public class Lox {
   private static void printHelp() {
     System.out.println(
         """
-      ------------------------------
-      -     LoxJava REPL           -
-      ------------------------------
-      | .help - Display help       |
-      | .exit - Exit program       |
+      -------------------------
+      -     LoxJava REPL      -
+      -------------------------
+      | .help - Display help  |
+      | .exit - Exit program  |
       -------------------------""");
   }
 
