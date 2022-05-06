@@ -28,6 +28,7 @@ def gen_stmt():
                 Parameter("Stmt", "elseBranch", True),
             ],
         ),
+        Token("While", [Parameter("Expr", "condition"), Parameter("Stmt", "body")]),
     ]
 
     gen_ast(class_name, tokens, import_list, out_path, package_name)

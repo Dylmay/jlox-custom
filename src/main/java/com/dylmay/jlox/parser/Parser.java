@@ -7,6 +7,7 @@ import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -64,35 +65,91 @@ public class Parser {
 
   private Stmt statement() {
     if (match(TokenType.IF)) return ifStatement();
-
+    if (match(TokenType.FOR)) return forStatement();
     if (match(TokenType.PRINT)) return printStatement();
-
+    if (match(TokenType.WHILE)) return whileStatement();
     if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(this.block());
 
     return expressionStatement();
   }
 
+  private Stmt forStatement() {
+    Stmt initializer;
+
+    var token = this.peek();
+
+    if (match(TokenType.SEMICOLON)) {
+      initializer = null;
+    } else if (match(TokenType.LET)) {
+      initializer = varDeclaration();
+    } else {
+      initializer = expressionStatement();
+    }
+
+    Expr condition = null;
+    if (!check(TokenType.SEMICOLON)) {
+      condition = expression();
+    }
+    consume(TokenType.SEMICOLON, "Expect ';' after loop condiiton.");
+
+    Expr increment = null;
+    if (!check(TokenType.RIGHT_PAREN)) {
+      increment = expression();
+    }
+
+    Stmt body = bracedStatement();
+
+    if (increment != null) {
+      body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+    }
+    if (condition == null) {
+      condition = new Expr.Literal(true, token.position());
+    }
+
+    body = new Stmt.While(condition, body);
+
+    if (initializer != null) {
+      body = new Stmt.Block(Arrays.asList(initializer, body));
+    }
+
+    return body;
+  }
+
   private Stmt ifStatement() {
     Expr condition = this.expression();
-    consume(TokenType.LEFT_BRACE, "Expected '{' at the start of the if condition.");
 
-    Stmt thenBranch = this.statement();
+    Stmt thenBranch = this.bracedStatement();
     Stmt elseBranch = null;
 
-    consume(TokenType.RIGHT_BRACE, "Expected '}' at the end of the if condition");
     if (match(TokenType.ELSE)) {
-      elseBranch = this.statement();
+      elseBranch = (this.check(TokenType.IF)) ? this.statement() : this.bracedStatement();
     }
 
     return new Stmt.If(condition, thenBranch, elseBranch);
   }
 
+  private Stmt bracedStatement() {
+      if (!this.check(TokenType.LEFT_BRACE)) {
+        error(this.peek(), "Expected '{' before else statement");
+      }
+
+      return this.statement();
+  }
+
   private Stmt printStatement() {
     var expr = this.expression();
 
-    consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    consume(TokenType.SEMICOLON, "Expected ';' after value.");
 
     return new Stmt.Print(expr);
+  }
+
+  private Stmt whileStatement() {
+    var condition = this.expression();
+
+    var body = this.bracedStatement();
+
+    return new Stmt.While(condition, body);
   }
 
   private Stmt expressionStatement() {
@@ -126,15 +183,37 @@ public class Parser {
   private Expr assignment() {
     var expr = this.ternary();
 
-    if (match(TokenType.EQUAL)) {
-      var equals = this.previous();
+
+    if (expr instanceof Expr.Variable variable && match(TokenType.STAR_EQUAL, TokenType.MINUS_EQUAL, TokenType.PLUS_EQUAL, TokenType.SLASH_EQUAL, TokenType.EQUAL)) {
+      var token = this.previous();
       var value = this.assignment();
 
-      if (expr instanceof Expr.Variable variable) {
-        return new Expr.Assign(variable.name, value);
+      switch (token.type()) {
+        case STAR_EQUAL:
+          value = new Expr.Binary(variable, new Token(TokenType.STAR, "*", null, token.position()), value);
+          break;
+
+        case SLASH_EQUAL:
+          value = new Expr.Binary(variable, new Token(TokenType.SLASH, "/", null, token.position()), value);
+          break;
+
+        case MINUS_EQUAL:
+          value = new Expr.Binary(variable, new Token(TokenType.MINUS, "-", null, token.position()), value);
+          break;
+
+        case PLUS_EQUAL:
+          value = new Expr.Binary(variable, new Token(TokenType.PLUS, "+", null, token.position()), value);
+          break;
+
+        case EQUAL:
+          break;
+
+        default:
+          this.error(this.previous(), "Invalid assignment target");
+          break;
       }
 
-      this.error(equals, "Invalid assignment target");
+      return new Expr.Assign(variable.name, value);
     }
 
     return expr;
@@ -221,8 +300,34 @@ public class Parser {
     return expr;
   }
 
-  private Expr ternary() {
+  private Expr or() {
+    var expr = and();
+
+    while (match(TokenType.OR)) {
+      var operator = previous();
+      var right = and();
+
+      expr = new Expr.Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  private Expr and() {
     var expr = this.findBinaryMatch(this::equality, TokenType.COMMA);
+
+    while (match(TokenType.AND)) {
+      var operator = previous();
+      var right = and();
+
+      expr = new Expr.Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  private Expr ternary() {
+    var expr = or();
 
     if (match(TokenType.TERNARY)) {
       var onTrue = this.expression();

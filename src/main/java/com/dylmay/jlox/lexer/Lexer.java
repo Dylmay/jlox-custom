@@ -73,11 +73,11 @@ public class Lexer {
         break;
 
       case '-':
-        this.addToken(TokenType.MINUS);
+        this.addToken(this.match('=') ? TokenType.MINUS_EQUAL : TokenType.MINUS);
         break;
 
       case '+':
-        this.addToken(TokenType.PLUS);
+        this.addToken(this.match('=') ? TokenType.PLUS_EQUAL : TokenType.PLUS);
         break;
 
       case ';':
@@ -85,7 +85,7 @@ public class Lexer {
         break;
 
       case '*':
-        this.addToken(TokenType.STAR);
+        this.addToken(this.match('=') ? TokenType.STAR_EQUAL : TokenType.STAR);
         break;
 
       case '?':
@@ -117,6 +117,8 @@ public class Lexer {
           procBlockComment();
         } else if (this.match('/')) { // line comment
           procLineComment();
+        } else if (this.match('=')) {
+          addToken(TokenType.SLASH_EQUAL);
         } else {
           addToken(TokenType.SLASH);
         }

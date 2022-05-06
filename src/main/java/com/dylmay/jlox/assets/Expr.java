@@ -18,6 +18,8 @@ public abstract class Expr {
     R visitVariableExpr(Variable expr);
 
     R visitAssignExpr(Assign expr);
+
+    R visitLogicalExpr(Logical expr);
   }
 
   public abstract <R> R accept(Visitor<R> visitor);
@@ -43,12 +45,9 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Binary i) {
-        return this.left != null
-            && this.left.equals(i.left)
-            && this.operator != null
-            && this.operator.equals(i.operator)
-            && this.right != null
-            && this.right.equals(i.right);
+        return this.left != null && this.left.equals(i.left)
+           && this.operator != null && this.operator.equals(i.operator)
+           && this.right != null && this.right.equals(i.right);
       }
 
       return false;
@@ -88,12 +87,9 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Ternary i) {
-        return this.condition != null
-            && this.condition.equals(i.condition)
-            && this.onTrue != null
-            && this.onTrue.equals(i.onTrue)
-            && this.onFalse != null
-            && this.onFalse.equals(i.onFalse);
+        return this.condition != null && this.condition.equals(i.condition)
+           && this.onTrue != null && this.onTrue.equals(i.onTrue)
+           && this.onFalse != null && this.onFalse.equals(i.onFalse);
       }
 
       return false;
@@ -165,10 +161,8 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Literal i) {
-        return this.value != null
-            && this.value.equals(i.value)
-            && this.pos != null
-            && this.pos.equals(i.pos);
+        return this.value != null && this.value.equals(i.value)
+           && this.pos != null && this.pos.equals(i.pos);
       }
 
       return false;
@@ -205,10 +199,8 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Unary i) {
-        return this.operator != null
-            && this.operator.equals(i.operator)
-            && this.right != null
-            && this.right.equals(i.right);
+        return this.operator != null && this.operator.equals(i.operator)
+           && this.right != null && this.right.equals(i.right);
       }
 
       return false;
@@ -279,10 +271,8 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Assign i) {
-        return this.name != null
-            && this.name.equals(i.name)
-            && this.value != null
-            && this.value.equals(i.value);
+        return this.name != null && this.name.equals(i.name)
+           && this.value != null && this.value.equals(i.value);
       }
 
       return false;
@@ -295,6 +285,48 @@ public abstract class Expr {
 
       result = prime * result + ((name == null) ? 0 : name.hashCode());
       result = prime * result + ((value == null) ? 0 : value.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Logical extends Expr {
+    public final Expr left;
+    public final Token operator;
+    public final Expr right;
+
+    public Logical(Expr left, Token operator, Expr right) {
+      this.left = left;
+      this.operator = operator;
+      this.right = right;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitLogicalExpr(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Logical i) {
+        return this.left != null && this.left.equals(i.left)
+           && this.operator != null && this.operator.equals(i.operator)
+           && this.right != null && this.right.equals(i.right);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((left == null) ? 0 : left.hashCode());
+      result = prime * result + ((operator == null) ? 0 : operator.hashCode());
+      result = prime * result + ((right == null) ? 0 : right.hashCode());
 
       return result;
     }

@@ -1,10 +1,13 @@
 package com.dylmay.jlox.interpreter;
 
 import com.dylmay.jlox.assets.Expr;
+import com.dylmay.jlox.assets.Expr.Logical;
 import com.dylmay.jlox.assets.Item;
 import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Stmt;
+import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.assets.Stmt.If;
+import com.dylmay.jlox.assets.Stmt.While;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.util.RuntimeError;
@@ -239,6 +242,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     return value;
   }
 
+
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
     this.executeBlock(stmt.stmts, new Environment(this.env));
@@ -272,4 +276,27 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     }
     return null;
   }
+
+  @Override
+  public Item visitLogicalExpr(Logical expr) {
+    var left = this.evaluate(expr.left);
+
+    if (expr.operator.type() == TokenType.OR) {
+      if (isTruthy(left)) return left;
+    } else {
+      if (!isTruthy(left)) return left;
+    }
+
+    return evaluate(expr.right);
+  }
+
+  @Override
+  public Void visitWhileStmt(While stmt) {
+    while (isTruthy(evaluate(stmt.condition))) {
+      execute(stmt.body);
+    }
+
+    return null;
+  }
+
 }

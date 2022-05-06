@@ -40,3 +40,34 @@ if a == 12 {
 } else if a == 10 {
   print "Hello world!";
 }
+
+if true {
+  let variable = 100;
+  print "hello world";
+}
+
+if (true) {
+  let variable = 100;
+  print variable;
+}
+
+let count = 0;
+while count < 10 {
+  print count;
+  count += 1;
+  print count;
+}
+
+for let i = 0; i < 10; i += 1 {
+  print "helol";
+}
+
+while (count -= 1) > 0 {
+  print "hello";
+}
+
+if false {
+  print "Hello";
+}
+
+print nil or "yes";

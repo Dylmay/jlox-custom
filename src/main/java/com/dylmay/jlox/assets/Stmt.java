@@ -16,6 +16,8 @@ public abstract class Stmt {
 
     @Nullable
     R visitIfStmt(If stmt);
+
+    R visitWhileStmt(While stmt);
   }
 
   public abstract <R> R accept(Visitor<R> visitor);
@@ -197,6 +199,44 @@ public abstract class Stmt {
       result = prime * result + ((condition == null) ? 0 : condition.hashCode());
       result = prime * result + ((thenBranch == null) ? 0 : thenBranch.hashCode());
       result = prime * result + ((elseBranch == null) ? 0 : elseBranch.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class While extends Stmt {
+    public final Expr condition;
+    public final Stmt body;
+
+    public While(Expr condition, Stmt body) {
+      this.condition = condition;
+      this.body = body;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitWhileStmt(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof While i) {
+        return this.condition != null && this.condition.equals(i.condition)
+           && this.body != null && this.body.equals(i.body);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((condition == null) ? 0 : condition.hashCode());
+      result = prime * result + ((body == null) ? 0 : body.hashCode());
 
       return result;
     }
