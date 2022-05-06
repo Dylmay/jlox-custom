@@ -33,7 +33,7 @@ def gen_expr():
         ),
         Token("Unary", [Parameter("Token", "operator"), Parameter("Expr", "right")]),
         Token("Variable", [Parameter("Token", "name")]),
-        Token("Assign", [Parameter("Token", "name"), Parameter("Expr", "value")])
+        Token("Assign", [Parameter("Token", "name"), Parameter("Expr", "value")]),
     ]
 
     gen_ast(class_name, tokens, import_list, out_path, package_name)

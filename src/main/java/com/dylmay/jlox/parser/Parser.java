@@ -63,11 +63,28 @@ public class Parser {
   }
 
   private Stmt statement() {
+    if (match(TokenType.IF)) return ifStatement();
+
     if (match(TokenType.PRINT)) return printStatement();
 
     if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(this.block());
 
     return expressionStatement();
+  }
+
+  private Stmt ifStatement() {
+    Expr condition = this.expression();
+    consume(TokenType.LEFT_BRACE, "Expected '{' at the start of the if condition.");
+
+    Stmt thenBranch = this.statement();
+    Stmt elseBranch = null;
+
+    consume(TokenType.RIGHT_BRACE, "Expected '}' at the end of the if condition");
+    if (match(TokenType.ELSE)) {
+      elseBranch = this.statement();
+    }
+
+    return new Stmt.If(condition, thenBranch, elseBranch);
   }
 
   private Stmt printStatement() {

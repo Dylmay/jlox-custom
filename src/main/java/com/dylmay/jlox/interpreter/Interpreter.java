@@ -1,9 +1,10 @@
-package com.dylmay.jlox.interpretor;
+package com.dylmay.jlox.interpreter;
 
 import com.dylmay.jlox.assets.Expr;
 import com.dylmay.jlox.assets.Item;
 import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Stmt;
+import com.dylmay.jlox.assets.Stmt.If;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.util.RuntimeError;
@@ -111,7 +112,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
     switch (expr.operator.type()) {
       case BANG:
-        return new Item(this.isTruthy(right.result()), expr.operator.position());
+        return new Item(!this.isTruthy(right), expr.operator.position());
 
       case MINUS:
         return new Item(-(double) right.result(), expr.operator.position());
@@ -128,9 +129,14 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     return expr.accept(this);
   }
 
-  private boolean isTruthy(Object object) {
-    if (object == null) return false;
-    if (object instanceof Boolean b) return b;
+  private boolean isTruthy(@Nullable Item item) {
+    if (item == null) return false;
+
+    var result = item.result();
+
+    if (result == null) return false;
+    if (result instanceof Boolean b) return b;
+
     return true;
   }
 
@@ -254,6 +260,16 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
       this.env = prevEnv;
     }
 
+    return null;
+  }
+
+  @Override
+  public Void visitIfStmt(If stmt) {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch != null) {
+      this.execute(stmt.elseBranch);
+    }
     return null;
   }
 }

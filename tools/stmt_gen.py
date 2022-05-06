@@ -19,7 +19,15 @@ def gen_stmt():
                 Parameter("Expr", "initializer", True),
             ],
         ),
-        Token("Block", [Parameter("List<Stmt>","stmts")])
+        Token("Block", [Parameter("List<Stmt>", "stmts")]),
+        Token(
+            "If",
+            [
+                Parameter("Expr", "condition"),
+                Parameter("Stmt", "thenBranch"),
+                Parameter("Stmt", "elseBranch", True),
+            ],
+        ),
     ]
 
     gen_ast(class_name, tokens, import_list, out_path, package_name)

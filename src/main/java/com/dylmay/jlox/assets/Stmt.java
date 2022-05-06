@@ -1,7 +1,7 @@
 package com.dylmay.jlox.assets;
 
-import java.util.List;
 import javax.annotation.Nullable;
+import java.util.List;
 
 public abstract class Stmt {
   public interface Visitor<R> {
@@ -13,6 +13,9 @@ public abstract class Stmt {
     R visitVarStmt(Var stmt);
 
     R visitBlockStmt(Block stmt);
+
+    @Nullable
+    R visitIfStmt(If stmt);
   }
 
   public abstract <R> R accept(Visitor<R> visitor);
@@ -104,10 +107,8 @@ public abstract class Stmt {
       if (this == obj) return true;
 
       if (obj instanceof Var i) {
-        return this.name != null
-            && this.name.equals(i.name)
-            && this.initializer != null
-            && this.initializer.equals(i.initializer);
+        return this.name != null && this.name.equals(i.name)
+           && this.initializer != null && this.initializer.equals(i.initializer);
       }
 
       return false;
@@ -154,6 +155,48 @@ public abstract class Stmt {
       int result = 1;
 
       result = prime * result + ((stmts == null) ? 0 : stmts.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class If extends Stmt {
+    public final Expr condition;
+    public final Stmt thenBranch;
+    public final @Nullable Stmt elseBranch;
+
+    public If(Expr condition, Stmt thenBranch, @Nullable Stmt elseBranch) {
+      this.condition = condition;
+      this.thenBranch = thenBranch;
+      this.elseBranch = elseBranch;
+    }
+
+    @Override
+    public <R> @Nullable R accept(Visitor<R> visitor) {
+      return visitor.visitIfStmt(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof If i) {
+        return this.condition != null && this.condition.equals(i.condition)
+           && this.thenBranch != null && this.thenBranch.equals(i.thenBranch)
+           && this.elseBranch != null && this.elseBranch.equals(i.elseBranch);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((condition == null) ? 0 : condition.hashCode());
+      result = prime * result + ((thenBranch == null) ? 0 : thenBranch.hashCode());
+      result = prime * result + ((elseBranch == null) ? 0 : elseBranch.hashCode());
 
       return result;
     }

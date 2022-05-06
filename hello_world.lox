@@ -18,3 +18,25 @@ let c = 30;
     print lvlTwo;
   }
 }
+
+let result = true;
+
+if result {
+  print "TRUE";
+} else {
+  print "FALSE";
+}
+
+// TODO: check why this prints
+print result;
+if !result {
+  print "FALSE";
+}
+
+print a;
+
+if a == 12 {
+  print "FALSE";
+} else if a == 10 {
+  print "Hello world!";
+}

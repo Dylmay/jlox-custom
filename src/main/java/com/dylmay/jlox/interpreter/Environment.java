@@ -1,4 +1,4 @@
-package com.dylmay.jlox.interpretor;
+package com.dylmay.jlox.interpreter;
 
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.util.RuntimeError;

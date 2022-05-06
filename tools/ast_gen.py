@@ -3,6 +3,7 @@ from pathlib import Path
 from textwrap import dedent, indent
 from functools import reduce
 from collections import namedtuple
+from typing import List
 
 Parameter = namedtuple(
     "Parameter", ["type", "name", "nullable"], defaults=["", "", False]
@@ -110,8 +111,8 @@ def create_interface(token, class_name) -> str:
 
 def gen_ast(
     class_name: str,
-    tokens: list[Token],
-    imports: list[str],
+    tokens: List[Token],
+    imports: List[str],
     out_path: str,
     package_name: str,
     interface_name="Visitor",

@@ -5,7 +5,7 @@ package com.dylmay.jlox;
 
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
-import com.dylmay.jlox.interpretor.Interpreter;
+import com.dylmay.jlox.interpreter.Interpreter;
 import com.dylmay.jlox.lexer.Lexer;
 import com.dylmay.jlox.parser.Parser;
 import java.io.BufferedReader;
