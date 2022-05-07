@@ -21,7 +21,6 @@ class TokenKeywords {
     KEYWORDS.put("if", TokenType.IF);
     KEYWORDS.put("nil", TokenType.NIL);
     KEYWORDS.put("or", TokenType.OR);
-    KEYWORDS.put("print", TokenType.PRINT);
     KEYWORDS.put("super", TokenType.SUPER);
     KEYWORDS.put("this", TokenType.THIS);
     KEYWORDS.put("true", TokenType.TRUE);

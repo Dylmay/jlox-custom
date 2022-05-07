@@ -7,7 +7,7 @@ def gen_expr():
     out_path = "./src/main/java/com/dylmay/jlox/assets"
     package_name = out_path.split("java/")[1].replace("/", ".")
 
-    import_list = ["javax.annotation.Nullable"]
+    import_list = ["javax.annotation.Nullable", "java.util.List"]
 
     tokens = [
         Token(
@@ -26,6 +26,7 @@ def gen_expr():
                 Parameter("Expr", "onFalse"),
             ],
         ),
+        Token("Call", [Parameter("Expr", "callee"), Parameter("Token", "paren"), Parameter("List<Expr>", "args")]),
         Token("Grouping", [Parameter("Expr", "expression")]),
         Token(
             "Literal",

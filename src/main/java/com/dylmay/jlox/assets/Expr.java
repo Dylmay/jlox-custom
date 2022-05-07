@@ -1,5 +1,6 @@
 package com.dylmay.jlox.assets;
 
+import java.util.List;
 import javax.annotation.Nullable;
 
 public abstract class Expr {
@@ -7,6 +8,8 @@ public abstract class Expr {
     R visitBinaryExpr(Binary expr);
 
     R visitTernaryExpr(Ternary expr);
+
+    R visitCallExpr(Call expr);
 
     R visitGroupingExpr(Grouping expr);
 
@@ -45,9 +48,12 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Binary i) {
-        return this.left != null && this.left.equals(i.left)
-           && this.operator != null && this.operator.equals(i.operator)
-           && this.right != null && this.right.equals(i.right);
+        return this.left != null
+            && this.left.equals(i.left)
+            && this.operator != null
+            && this.operator.equals(i.operator)
+            && this.right != null
+            && this.right.equals(i.right);
       }
 
       return false;
@@ -87,9 +93,12 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Ternary i) {
-        return this.condition != null && this.condition.equals(i.condition)
-           && this.onTrue != null && this.onTrue.equals(i.onTrue)
-           && this.onFalse != null && this.onFalse.equals(i.onFalse);
+        return this.condition != null
+            && this.condition.equals(i.condition)
+            && this.onTrue != null
+            && this.onTrue.equals(i.onTrue)
+            && this.onFalse != null
+            && this.onFalse.equals(i.onFalse);
       }
 
       return false;
@@ -103,6 +112,51 @@ public abstract class Expr {
       result = prime * result + ((condition == null) ? 0 : condition.hashCode());
       result = prime * result + ((onTrue == null) ? 0 : onTrue.hashCode());
       result = prime * result + ((onFalse == null) ? 0 : onFalse.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Call extends Expr {
+    public final Expr callee;
+    public final Token paren;
+    public final List<Expr> args;
+
+    public Call(Expr callee, Token paren, List<Expr> args) {
+      this.callee = callee;
+      this.paren = paren;
+      this.args = args;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitCallExpr(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Call i) {
+        return this.callee != null
+            && this.callee.equals(i.callee)
+            && this.paren != null
+            && this.paren.equals(i.paren)
+            && this.args != null
+            && this.args.equals(i.args);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((callee == null) ? 0 : callee.hashCode());
+      result = prime * result + ((paren == null) ? 0 : paren.hashCode());
+      result = prime * result + ((args == null) ? 0 : args.hashCode());
 
       return result;
     }
@@ -161,8 +215,10 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Literal i) {
-        return this.value != null && this.value.equals(i.value)
-           && this.pos != null && this.pos.equals(i.pos);
+        return this.value != null
+            && this.value.equals(i.value)
+            && this.pos != null
+            && this.pos.equals(i.pos);
       }
 
       return false;
@@ -199,8 +255,10 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Unary i) {
-        return this.operator != null && this.operator.equals(i.operator)
-           && this.right != null && this.right.equals(i.right);
+        return this.operator != null
+            && this.operator.equals(i.operator)
+            && this.right != null
+            && this.right.equals(i.right);
       }
 
       return false;
@@ -271,8 +329,10 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Assign i) {
-        return this.name != null && this.name.equals(i.name)
-           && this.value != null && this.value.equals(i.value);
+        return this.name != null
+            && this.name.equals(i.name)
+            && this.value != null
+            && this.value.equals(i.value);
       }
 
       return false;
@@ -311,9 +371,12 @@ public abstract class Expr {
       if (this == obj) return true;
 
       if (obj instanceof Logical i) {
-        return this.left != null && this.left.equals(i.left)
-           && this.operator != null && this.operator.equals(i.operator)
-           && this.right != null && this.right.equals(i.right);
+        return this.left != null
+            && this.left.equals(i.left)
+            && this.operator != null
+            && this.operator.equals(i.operator)
+            && this.right != null
+            && this.right.equals(i.right);
       }
 
       return false;

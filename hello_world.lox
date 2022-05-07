@@ -1,7 +1,7 @@
-print "Hello " + "World"; // Prints hello world
-print "one";
-print true;
-print 2 + 3;
+print("Hello " + "World"); // Prints hello world
+print("one");
+print(true);
+print(2 + 3);
 
 let a = 10;
 let b = 20;
@@ -11,63 +11,82 @@ let c = 30;
   let lvlOne = "lev1";
   {
     let lvlTwo = "lev2";
-    print a;
-    print b;
-    print c;
-    print lvlOne;
-    print lvlTwo;
+    print(a);
+    print(b);
+    print(c);
+    print(lvlOne);
+    print(lvlTwo);
   }
 }
 
 let result = true;
 
 if result {
-  print "TRUE";
+  print("TRUE");
 } else {
-  print "FALSE";
+  print("FALSE");
 }
 
 // TODO: check why this prints
-print result;
+print(result);
 if !result {
-  print "FALSE";
+  print("FALSE");
 }
 
-print a;
+print(a);
 
 if a == 12 {
-  print "FALSE";
+  print("FALSE");
 } else if a == 10 {
-  print "Hello world!";
+  print("Hello world!");
 }
 
 if true {
   let variable = 100;
-  print "hello world";
+  print("hello world");
 }
 
 if (true) {
   let variable = 100;
-  print variable;
+  print(variable);
 }
 
 let count = 0;
 while count < 10 {
-  print count;
+  print(count);
   count += 1;
-  print count;
+  print(count);
 }
 
 for let i = 0; i < 10; i += 1 {
-  print "helol";
+  print("helol");
 }
 
 while (count -= 1) > 0 {
-  print "hello";
+  print("hello");
 }
 
 if false {
-  print "Hello";
+  print("Hello");
 }
 
-print nil or "yes";
+print(nil or "yes");
+
+let value = 1;
+let temp;
+for let b = 1; value < 10000; b += temp {
+  print(value);
+  temp = value;
+  value = b;
+}
+
+print("Time: ");
+print(clock);
+print(clock());
+print(clock());
+// print clock;
+fn helloWorld(name) {
+  print("Hello" + name);
+}
+
+fn helloWorld(a, b, c) { }

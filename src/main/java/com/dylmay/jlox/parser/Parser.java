@@ -47,11 +47,20 @@ public class Parser {
         return this.varDeclaration();
       }
 
+      if (match(TokenType.FN)) {
+        return function("function");
+      }
+
       return statement();
     } catch (ParseException exc) {
       this.synchronize();
       return null;
     }
+  }
+
+  private Stmt function(String kind) {
+    var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
+    var parms = new ArrayList<Token>();
   }
 
   private Stmt varDeclaration() {
@@ -66,7 +75,6 @@ public class Parser {
   private Stmt statement() {
     if (match(TokenType.IF)) return ifStatement();
     if (match(TokenType.FOR)) return forStatement();
-    if (match(TokenType.PRINT)) return printStatement();
     if (match(TokenType.WHILE)) return whileStatement();
     if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(this.block());
 
@@ -129,19 +137,11 @@ public class Parser {
   }
 
   private Stmt bracedStatement() {
-      if (!this.check(TokenType.LEFT_BRACE)) {
-        error(this.peek(), "Expected '{' before else statement");
-      }
+    if (!this.check(TokenType.LEFT_BRACE)) {
+      error(this.peek(), "Expected '{' before else statement");
+    }
 
-      return this.statement();
-  }
-
-  private Stmt printStatement() {
-    var expr = this.expression();
-
-    consume(TokenType.SEMICOLON, "Expected ';' after value.");
-
-    return new Stmt.Print(expr);
+    return this.statement();
   }
 
   private Stmt whileStatement() {
@@ -183,26 +183,39 @@ public class Parser {
   private Expr assignment() {
     var expr = this.ternary();
 
-
-    if (expr instanceof Expr.Variable variable && match(TokenType.STAR_EQUAL, TokenType.MINUS_EQUAL, TokenType.PLUS_EQUAL, TokenType.SLASH_EQUAL, TokenType.EQUAL)) {
+    if (expr instanceof Expr.Variable variable
+        && match(
+            TokenType.STAR_EQUAL,
+            TokenType.MINUS_EQUAL,
+            TokenType.PLUS_EQUAL,
+            TokenType.SLASH_EQUAL,
+            TokenType.EQUAL)) {
       var token = this.previous();
       var value = this.assignment();
 
       switch (token.type()) {
         case STAR_EQUAL:
-          value = new Expr.Binary(variable, new Token(TokenType.STAR, "*", null, token.position()), value);
+          value =
+              new Expr.Binary(
+                  variable, new Token(TokenType.STAR, "*", null, token.position()), value);
           break;
 
         case SLASH_EQUAL:
-          value = new Expr.Binary(variable, new Token(TokenType.SLASH, "/", null, token.position()), value);
+          value =
+              new Expr.Binary(
+                  variable, new Token(TokenType.SLASH, "/", null, token.position()), value);
           break;
 
         case MINUS_EQUAL:
-          value = new Expr.Binary(variable, new Token(TokenType.MINUS, "-", null, token.position()), value);
+          value =
+              new Expr.Binary(
+                  variable, new Token(TokenType.MINUS, "-", null, token.position()), value);
           break;
 
         case PLUS_EQUAL:
-          value = new Expr.Binary(variable, new Token(TokenType.PLUS, "+", null, token.position()), value);
+          value =
+              new Expr.Binary(
+                  variable, new Token(TokenType.PLUS, "+", null, token.position()), value);
           break;
 
         case EQUAL:
@@ -248,7 +261,34 @@ public class Parser {
       return new Expr.Unary(operator, right);
     }
 
-    return primary();
+    return call();
+  }
+
+  private Expr call() {
+    var expr = this.primary();
+
+    while (match(TokenType.LEFT_PAREN)) {
+      expr = finishCall(expr);
+    }
+
+    return expr;
+  }
+
+  private Expr finishCall(Expr callee) {
+    var args = new ArrayList<Expr>(5);
+
+    if (!check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (args.size() >= 255) {
+          error(peek(), "Can't have more than 255 arguments.");
+        }
+        args.add(this.expression());
+      } while (match(TokenType.COMMA));
+    }
+
+    var paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+
+    return new Expr.Call(callee, paren, args);
   }
 
   private Expr primary() {
@@ -402,7 +442,6 @@ public class Parser {
         case FOR:
         case FN:
         case IF:
-        case PRINT:
         case RETURN:
         case LET:
         case WHILE:

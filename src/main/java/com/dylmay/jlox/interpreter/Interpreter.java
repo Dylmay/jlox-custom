@@ -1,26 +1,83 @@
 package com.dylmay.jlox.interpreter;
 
 import com.dylmay.jlox.assets.Expr;
+import com.dylmay.jlox.assets.Expr.Call;
 import com.dylmay.jlox.assets.Expr.Logical;
 import com.dylmay.jlox.assets.Item;
 import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Stmt;
-import com.dylmay.jlox.assets.TokenType;
+import com.dylmay.jlox.assets.Stmt.Function;
 import com.dylmay.jlox.assets.Stmt.If;
 import com.dylmay.jlox.assets.Stmt.While;
+import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.util.RuntimeError;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
 public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance(Interpreter.class);
 
+  private final Environment globals = new Environment();
   private Environment env;
 
   public Interpreter() {
-    this.env = new Environment();
+    this.env = globals;
+
+    globals.define(
+        "clock",
+        new LoxCallable() {
+          @Override
+          public int arity() {
+            return 0;
+          }
+
+          @Override
+          public Object call(Interpreter interpreter, List<Object> args) {
+            return System.currentTimeMillis() / 1000.0d;
+          }
+
+          @Override
+          public String toString() {
+            return "<native fn>";
+          }
+        });
+    globals.define(
+        "print",
+        new LoxCallable() {
+          @Override
+          public int arity() {
+            return 1;
+          }
+
+          @Override
+          public @Nullable Object call(Interpreter interpreter, List<Object> args) {
+            System.out.println(args.get(0).toString());
+
+            return null;
+          }
+
+          @Override
+          public String toString() {
+            return "<native fn>";
+          }
+        });
+    // globals.define("fmt", new LoxCallable() {
+    //   @Override
+    //   public int arity() {
+    //     return 2;
+    //   }
+
+    //   @Override
+    //   public Object call(Interpreter interpreter, List<Object> args) {
+    //     final var pattern = Pattern.compile("{.*}");
+    //     var sb = new StringBuilder(args.get(0).toString());
+
+    //     return sb.toString();
+    //   }
+    // });
   }
 
   @Override
@@ -198,15 +255,6 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   }
 
   @Override
-  public Void visitPrintStmt(Stmt.Print stmt) {
-    var result = this.evaluate(stmt.expr);
-
-    System.out.println(this.stringify(result.result()));
-
-    return null;
-  }
-
-  @Override
   @SuppressWarnings("nullable")
   public Void visitVarStmt(Stmt.Var stmt) {
     Object value = null;
@@ -241,7 +289,6 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
     return value;
   }
-
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
@@ -299,4 +346,26 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     return null;
   }
 
+  @Override
+  @SuppressWarnings("nullness")
+  public Item visitCallExpr(Call expr) {
+    var callee = this.evaluate(expr.callee);
+
+    var args = new ArrayList<>();
+    for (var arg : expr.args) {
+      args.add(this.evaluate(arg).result());
+    }
+
+    if (callee.result() instanceof LoxCallable function && args.size() == function.arity()) {
+      return new Item(function.call(this, args), expr.paren.position());
+    }
+
+    throw new RuntimeError(expr.paren.position(), "Can only call functions and classess");
+  }
+
+  @Override
+  public Void visitFunctionStmt(Function stmt) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

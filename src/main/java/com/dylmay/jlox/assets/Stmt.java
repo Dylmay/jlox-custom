@@ -7,7 +7,7 @@ public abstract class Stmt {
   public interface Visitor<R> {
     R visitExpressionStmt(Expression stmt);
 
-    R visitPrintStmt(Print stmt);
+    R visitFunctionStmt(Function stmt);
 
     @Nullable
     R visitVarStmt(Var stmt);
@@ -56,24 +56,27 @@ public abstract class Stmt {
     }
   }
 
-  public static class Print extends Stmt {
-    public final Expr expr;
+  public static class Function extends Stmt {
+    public final Token name;
+    public final List<Token> parms;
 
-    public Print(Expr expr) {
-      this.expr = expr;
+    public Function(Token name, List<Token> parms) {
+      this.name = name;
+      this.parms = parms;
     }
 
     @Override
     public <R> R accept(Visitor<R> visitor) {
-      return visitor.visitPrintStmt(this);
+      return visitor.visitFunctionStmt(this);
     }
 
     @Override
     public boolean equals(@Nullable Object obj) {
       if (this == obj) return true;
 
-      if (obj instanceof Print i) {
-        return this.expr != null && this.expr.equals(i.expr);
+      if (obj instanceof Function i) {
+        return this.name != null && this.name.equals(i.name)
+           && this.parms != null && this.parms.equals(i.parms);
       }
 
       return false;
@@ -84,7 +87,8 @@ public abstract class Stmt {
       final int prime = 31;
       int result = 1;
 
-      result = prime * result + ((expr == null) ? 0 : expr.hashCode());
+      result = prime * result + ((name == null) ? 0 : name.hashCode());
+      result = prime * result + ((parms == null) ? 0 : parms.hashCode());
 
       return result;
     }
