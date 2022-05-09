@@ -10,9 +10,13 @@ class Environment {
   private final @Nullable Environment parent;
   private final Map<String, Object> values;
 
-  public Environment(@Nullable Environment parent) {
+  public Environment(@Nullable Environment parent, Map<String, Object> values) {
     this.parent = parent;
-    this.values = new HashMap<>();
+    this.values = values;
+  }
+
+  public Environment(@Nullable Environment parent) {
+    this(parent, new HashMap<>());
   }
 
   public Environment() {
