@@ -7,6 +7,9 @@ import com.dylmay.jlox.assets.Stmt;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
+import com.dylmay.jlox.interpreter.call.Break;
+import com.dylmay.jlox.interpreter.call.Continue;
+import com.dylmay.jlox.interpreter.call.Return;
 import com.dylmay.jlox.util.RuntimeError;
 import java.util.ArrayList;
 import java.util.List;
@@ -201,7 +204,6 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
   @Override
   public Item visitVariableExpr(Expr.Variable expr) {
-    // TODO: tidy up to use object
     return new Item(this.env.get(expr.name), Position.NO_POSITION);
   }
 
@@ -267,7 +269,12 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
     while (isTruthy(evaluate(stmt.condition))) {
-      execute(stmt.body);
+      try {
+        execute(stmt.body);
+      } catch (Break b) {
+        break;
+      } catch (Continue c) {
+      }
     }
 
     return null;
@@ -310,5 +317,15 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   @Override
   public Item visitFnExpr(Expr.Fn expr) {
     return new Item(new LoxFunction(expr, this.env), expr.pos);
+  }
+
+  @Override
+  public Void visitBreakStmt(com.dylmay.jlox.assets.Stmt.Break stmt) {
+    throw new Break();
+  }
+
+  @Override
+  public Void visitContinueStmt(com.dylmay.jlox.assets.Stmt.Continue stmt) {
+    throw new Continue();
   }
 }

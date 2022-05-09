@@ -19,6 +19,10 @@ public abstract class Stmt {
     R visitReturnStmt(Return stmt);
 
     R visitWhileStmt(While stmt);
+
+    R visitBreakStmt(Break stmt);
+
+    R visitContinueStmt(Continue stmt);
   }
 
   public abstract <R> R accept(Visitor<R> visitor);
@@ -251,6 +255,74 @@ public abstract class Stmt {
 
       result = prime * result + ((condition == null) ? 0 : condition.hashCode());
       result = prime * result + ((body == null) ? 0 : body.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Break extends Stmt {
+    public final Token keyword;
+
+    public Break(Token keyword) {
+      this.keyword = keyword;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBreakStmt(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Break i) {
+        return this.keyword != null && this.keyword.equals(i.keyword);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((keyword == null) ? 0 : keyword.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Continue extends Stmt {
+    public final Token keyword;
+
+    public Continue(Token keyword) {
+      this.keyword = keyword;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitContinueStmt(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Continue i) {
+        return this.keyword != null && this.keyword.equals(i.keyword);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((keyword == null) ? 0 : keyword.hashCode());
 
       return result;
     }

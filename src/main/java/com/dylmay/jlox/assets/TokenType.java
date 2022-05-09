@@ -51,6 +51,8 @@ public enum TokenType {
   TRUE,
   LET,
   WHILE,
+  CONTINUE,
+  BREAK,
 
   EOF,
 }

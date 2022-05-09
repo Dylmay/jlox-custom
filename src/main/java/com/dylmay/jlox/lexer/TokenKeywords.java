@@ -27,6 +27,8 @@ class TokenKeywords {
     KEYWORDS.put("let", TokenType.LET);
     KEYWORDS.put("while", TokenType.WHILE);
     KEYWORDS.put("return", TokenType.RETURN);
+    KEYWORDS.put("continue", TokenType.CONTINUE);
+    KEYWORDS.put("break", TokenType.BREAK);
   }
 
   public static @Nullable TokenType match(String reservedWord) {

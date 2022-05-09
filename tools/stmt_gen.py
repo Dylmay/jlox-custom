@@ -31,6 +31,8 @@ def gen_stmt():
             "Return", [Parameter("Token", "keyword"), Parameter("Expr", "value", True)]
         ),
         Token("While", [Parameter("Expr", "condition"), Parameter("Stmt", "body")]),
+        Token("Break", [Parameter("Token", "keyword")]),
+        Token("Continue", [Parameter("Token", "keyword")]),
     ]
 
     gen_ast(class_name, tokens, import_list, out_path, package_name)

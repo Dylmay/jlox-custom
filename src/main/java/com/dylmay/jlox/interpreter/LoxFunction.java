@@ -4,6 +4,7 @@ import com.dylmay.jlox.assets.Expr;
 import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
+import com.dylmay.jlox.interpreter.call.Return;
 import java.util.List;
 
 class LoxFunction implements LoxCallable {
