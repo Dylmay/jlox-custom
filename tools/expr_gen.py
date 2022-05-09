@@ -26,7 +26,14 @@ def gen_expr():
                 Parameter("Expr", "onFalse"),
             ],
         ),
-        Token("Call", [Parameter("Expr", "callee"), Parameter("Token", "paren"), Parameter("List<Expr>", "args")]),
+        Token(
+            "Call",
+            [
+                Parameter("Expr", "callee"),
+                Parameter("Token", "paren"),
+                Parameter("List<Expr>", "args"),
+            ],
+        ),
         Token("Grouping", [Parameter("Expr", "expression")]),
         Token(
             "Literal",
@@ -35,7 +42,22 @@ def gen_expr():
         Token("Unary", [Parameter("Token", "operator"), Parameter("Expr", "right")]),
         Token("Variable", [Parameter("Token", "name")]),
         Token("Assign", [Parameter("Token", "name"), Parameter("Expr", "value")]),
-        Token("Logical", [Parameter("Expr", "left"), Parameter("Token", "operator"), Parameter("Expr", "right")])
+        Token(
+            "Logical",
+            [
+                Parameter("Expr", "left"),
+                Parameter("Token", "operator"),
+                Parameter("Expr", "right"),
+            ],
+        ),
+        Token(
+            "Fn",
+            [
+                Parameter("Position", "pos"),
+                Parameter("List<Token>", "parms"),
+                Parameter("List<Stmt>", "body"),
+            ],
+        ),
     ]
 
     gen_ast(class_name, tokens, import_list, out_path, package_name)

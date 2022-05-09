@@ -11,7 +11,13 @@ def gen_stmt():
 
     tokens = [
         Token("Expression", [Parameter("Expr", "expr")]),
-        Token("Function", [Parameter("Token", "name"), Parameter("List<Token>", "parms")]),
+        Token(
+            "Function",
+            [
+                Parameter("Token", "name"),
+                Parameter("Expr.Fn", "function"),
+            ],
+        ),
         Token(
             "Var",
             [
@@ -27,6 +33,9 @@ def gen_stmt():
                 Parameter("Stmt", "thenBranch"),
                 Parameter("Stmt", "elseBranch", True),
             ],
+        ),
+        Token(
+            "Return", [Parameter("Token", "keyword"), Parameter("Expr", "value", True)]
         ),
         Token("While", [Parameter("Expr", "condition"), Parameter("Stmt", "body")]),
     ]

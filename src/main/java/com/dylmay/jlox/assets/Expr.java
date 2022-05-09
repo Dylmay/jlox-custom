@@ -23,6 +23,8 @@ public abstract class Expr {
     R visitAssignExpr(Assign expr);
 
     R visitLogicalExpr(Logical expr);
+
+    R visitFnExpr(Fn expr);
   }
 
   public abstract <R> R accept(Visitor<R> visitor);
@@ -390,6 +392,51 @@ public abstract class Expr {
       result = prime * result + ((left == null) ? 0 : left.hashCode());
       result = prime * result + ((operator == null) ? 0 : operator.hashCode());
       result = prime * result + ((right == null) ? 0 : right.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Fn extends Expr {
+    public final Position pos;
+    public final List<Token> parms;
+    public final List<Stmt> body;
+
+    public Fn(Position pos, List<Token> parms, List<Stmt> body) {
+      this.pos = pos;
+      this.parms = parms;
+      this.body = body;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitFnExpr(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Fn i) {
+        return this.pos != null
+            && this.pos.equals(i.pos)
+            && this.parms != null
+            && this.parms.equals(i.parms)
+            && this.body != null
+            && this.body.equals(i.body);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((pos == null) ? 0 : pos.hashCode());
+      result = prime * result + ((parms == null) ? 0 : parms.hashCode());
+      result = prime * result + ((body == null) ? 0 : body.hashCode());
 
       return result;
     }

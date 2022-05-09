@@ -58,9 +58,29 @@ public class Parser {
     }
   }
 
+  private Expr.Fn exprFn(String kind) {
+    var parms = new ArrayList<Token>();
+    var funcTkn = this.previous();
+
+    consume(TokenType.LEFT_PAREN, "Expected '(' after " + kind + " name.");
+    if (!check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parms.size() >= 255) {
+          error(this.peek(), "Can't have more than 255 parameters.");
+        }
+        parms.add(consume(TokenType.IDENTIFIER, "Expected parameter name."));
+      } while (match(TokenType.COMMA));
+    }
+    consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters.");
+    consume(TokenType.LEFT_BRACE, "Expected '{' before " + kind + " body.");
+
+    return new Expr.Fn(funcTkn.position(), parms, this.block());
+  }
+
   private Stmt function(String kind) {
     var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
-    var parms = new ArrayList<Token>();
+
+    return new Stmt.Function(name, this.exprFn(kind));
   }
 
   private Stmt varDeclaration() {
@@ -76,9 +96,19 @@ public class Parser {
     if (match(TokenType.IF)) return ifStatement();
     if (match(TokenType.FOR)) return forStatement();
     if (match(TokenType.WHILE)) return whileStatement();
+    if (match(TokenType.RETURN)) return returnStatement();
     if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(this.block());
 
     return expressionStatement();
+  }
+
+  private Stmt returnStatement() {
+    var keyword = this.previous();
+    Expr value = this.check(TokenType.SEMICOLON) ? null : this.expression();
+
+    consume(TokenType.SEMICOLON, "Expected ';' after return value.");
+
+    return new Stmt.Return(keyword, value);
   }
 
   private Stmt forStatement() {
@@ -312,6 +342,10 @@ public class Parser {
       return new Expr.Variable(this.previous());
     }
 
+    if (match(TokenType.FN)) {
+      return this.exprFn("Lambda");
+    }
+
     if (match(TokenType.LEFT_PAREN)) {
       var expr = this.expression();
 
@@ -354,7 +388,7 @@ public class Parser {
   }
 
   private Expr and() {
-    var expr = this.findBinaryMatch(this::equality, TokenType.COMMA);
+    var expr = this.equality();
 
     while (match(TokenType.AND)) {
       var operator = previous();

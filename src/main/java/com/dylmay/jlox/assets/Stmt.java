@@ -1,7 +1,7 @@
 package com.dylmay.jlox.assets;
 
-import javax.annotation.Nullable;
 import java.util.List;
+import javax.annotation.Nullable;
 
 public abstract class Stmt {
   public interface Visitor<R> {
@@ -16,6 +16,9 @@ public abstract class Stmt {
 
     @Nullable
     R visitIfStmt(If stmt);
+
+    @Nullable
+    R visitReturnStmt(Return stmt);
 
     R visitWhileStmt(While stmt);
   }
@@ -58,11 +61,11 @@ public abstract class Stmt {
 
   public static class Function extends Stmt {
     public final Token name;
-    public final List<Token> parms;
+    public final Expr.Fn function;
 
-    public Function(Token name, List<Token> parms) {
+    public Function(Token name, Expr.Fn function) {
       this.name = name;
-      this.parms = parms;
+      this.function = function;
     }
 
     @Override
@@ -75,8 +78,10 @@ public abstract class Stmt {
       if (this == obj) return true;
 
       if (obj instanceof Function i) {
-        return this.name != null && this.name.equals(i.name)
-           && this.parms != null && this.parms.equals(i.parms);
+        return this.name != null
+            && this.name.equals(i.name)
+            && this.function != null
+            && this.function.equals(i.function);
       }
 
       return false;
@@ -88,7 +93,7 @@ public abstract class Stmt {
       int result = 1;
 
       result = prime * result + ((name == null) ? 0 : name.hashCode());
-      result = prime * result + ((parms == null) ? 0 : parms.hashCode());
+      result = prime * result + ((function == null) ? 0 : function.hashCode());
 
       return result;
     }
@@ -113,8 +118,10 @@ public abstract class Stmt {
       if (this == obj) return true;
 
       if (obj instanceof Var i) {
-        return this.name != null && this.name.equals(i.name)
-           && this.initializer != null && this.initializer.equals(i.initializer);
+        return this.name != null
+            && this.name.equals(i.name)
+            && this.initializer != null
+            && this.initializer.equals(i.initializer);
       }
 
       return false;
@@ -187,9 +194,12 @@ public abstract class Stmt {
       if (this == obj) return true;
 
       if (obj instanceof If i) {
-        return this.condition != null && this.condition.equals(i.condition)
-           && this.thenBranch != null && this.thenBranch.equals(i.thenBranch)
-           && this.elseBranch != null && this.elseBranch.equals(i.elseBranch);
+        return this.condition != null
+            && this.condition.equals(i.condition)
+            && this.thenBranch != null
+            && this.thenBranch.equals(i.thenBranch)
+            && this.elseBranch != null
+            && this.elseBranch.equals(i.elseBranch);
       }
 
       return false;
@@ -203,6 +213,46 @@ public abstract class Stmt {
       result = prime * result + ((condition == null) ? 0 : condition.hashCode());
       result = prime * result + ((thenBranch == null) ? 0 : thenBranch.hashCode());
       result = prime * result + ((elseBranch == null) ? 0 : elseBranch.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Return extends Stmt {
+    public final Token keyword;
+    public final @Nullable Expr value;
+
+    public Return(Token keyword, @Nullable Expr value) {
+      this.keyword = keyword;
+      this.value = value;
+    }
+
+    @Override
+    public <R> @Nullable R accept(Visitor<R> visitor) {
+      return visitor.visitReturnStmt(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Return i) {
+        return this.keyword != null
+            && this.keyword.equals(i.keyword)
+            && this.value != null
+            && this.value.equals(i.value);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((keyword == null) ? 0 : keyword.hashCode());
+      result = prime * result + ((value == null) ? 0 : value.hashCode());
 
       return result;
     }
@@ -227,8 +277,10 @@ public abstract class Stmt {
       if (this == obj) return true;
 
       if (obj instanceof While i) {
-        return this.condition != null && this.condition.equals(i.condition)
-           && this.body != null && this.body.equals(i.body);
+        return this.condition != null
+            && this.condition.equals(i.condition)
+            && this.body != null
+            && this.body.equals(i.body);
       }
 
       return false;

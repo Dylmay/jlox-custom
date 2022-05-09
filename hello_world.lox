@@ -85,8 +85,83 @@ print(clock);
 print(clock());
 print(clock());
 // print clock;
-fn helloWorld(name) {
-  print("Hello" + name);
+fn hello(name) {
+  print("Hello " + name);
 }
 
-fn helloWorld(a, b, c) { }
+fn helloWorld(first, last, age) {
+  hello(first + " " + last);
+  print("Age: " + str(age));
+}
+
+hello("Dylan");
+
+helloWorld("Dylan", "Mayor", 23);
+
+fn fib(n) {
+  return n > 1 ? fib(n - 2) + fib(n - 1) : n;
+}
+
+print(fib(2));
+print(fib(20));
+
+fn makeCounter() {
+  let i = 0;
+
+  fn count() {
+    i += 1;
+
+    return i;
+  }
+
+  return count;
+}
+
+let counter = makeCounter();
+print(counter());
+print(counter());
+
+fn thrice(func) {
+  for let i = 0; i < 3; i += 1 {
+    func(i);
+  }
+}
+
+fn printer(val) {
+  print("Val: " + str(val));
+}
+
+thrice(printer);
+thrice(fn (val) {
+  print("Vala: " + str(val));
+});
+
+let assignFunc = fn (abc) {
+  print(abc);
+
+  return "called";
+};
+
+print(assignFunc("hello"));
+
+let outsideVal = "val";
+outsideVal = "valb";
+
+let editVal = fn (val) {
+  val = "new val";
+
+  print(val);
+};
+editVal(outsideVal);
+print(outsideVal);
+
+let glbl = "global";
+{
+  fn showA() {
+    print(glbl);
+  }
+
+  showA();
+  let glbl = "block";
+  showA();
+}

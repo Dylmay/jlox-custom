@@ -1,14 +1,9 @@
 package com.dylmay.jlox.interpreter;
 
 import com.dylmay.jlox.assets.Expr;
-import com.dylmay.jlox.assets.Expr.Call;
-import com.dylmay.jlox.assets.Expr.Logical;
 import com.dylmay.jlox.assets.Item;
 import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Stmt;
-import com.dylmay.jlox.assets.Stmt.Function;
-import com.dylmay.jlox.assets.Stmt.If;
-import com.dylmay.jlox.assets.Stmt.While;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
@@ -20,7 +15,7 @@ import javax.annotation.Nullable;
 public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance(Interpreter.class);
 
-  private final Environment globals = new Environment();
+  final Environment globals = new Environment();
   private Environment env;
 
   public Interpreter() {
@@ -29,6 +24,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     globals.define(
         "clock",
         new LoxCallable() {
+
           @Override
           public int arity() {
             return 0;
@@ -54,7 +50,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
           @Override
           public @Nullable Object call(Interpreter interpreter, List<Object> args) {
-            System.out.println(args.get(0).toString());
+            System.out.println(stringify(args.get(0)));
 
             return null;
           }
@@ -63,8 +59,51 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
           public String toString() {
             return "<native fn>";
           }
+
+          static String stringify(@Nullable Object obj) {
+            if (obj == null) {
+              return "nil";
+            }
+
+            var text = obj.toString();
+
+            if (obj instanceof Double && text.endsWith(".0")) {
+              text = text.substring(0, text.length() - 2);
+            }
+
+            return text;
+          }
+        });
+    globals.define(
+        "str",
+        new LoxCallable() {
+          @Override
+          public int arity() {
+            return 1;
+          }
+
+          @Override
+          public @Nullable Object call(Interpreter interpreter, List<Object> args) {
+            final var obj = args.get(0);
+
+            if (obj == null) {
+              return "nil";
+            }
+
+            var text = obj.toString();
+
+            if (obj instanceof Double && text.endsWith(".0")) {
+              text = text.substring(0, text.length() - 2);
+            }
+
+            return text;
+          }
         });
     // globals.define("fmt", new LoxCallable() {
+    //   int prevPtr = 0;
+    //   int curPtr = 0;
+    //   StringBuilder procString = new StringBuilder();
+
     //   @Override
     //   public int arity() {
     //     return 2;
@@ -72,10 +111,12 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
     //   @Override
     //   public Object call(Interpreter interpreter, List<Object> args) {
-    //     final var pattern = Pattern.compile("{.*}");
-    //     var sb = new StringBuilder(args.get(0).toString());
+    //     if (args.get(0) instanceof String str) {
+    //       curPtr = str.indexOf('{', curPtr);
+    //       procString.append(str.substring(cur));
+    //     }
 
-    //     return sb.toString();
+    //     return args.get(0);
     //   }
     // });
   }
@@ -185,11 +226,11 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     }
   }
 
-  private Item evaluate(Expr expr) {
+  Item evaluate(Expr expr) {
     return expr.accept(this);
   }
 
-  private boolean isTruthy(@Nullable Item item) {
+  boolean isTruthy(@Nullable Item item) {
     if (item == null) return false;
 
     var result = item.result();
@@ -200,14 +241,14 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     return true;
   }
 
-  private boolean isEqual(Object a, Object b) {
+  boolean isEqual(Object a, Object b) {
     if (a == null && b == null) return true;
     if (a == null) return false;
 
     return a.equals(b);
   }
 
-  private void assertIsNumber(Item... values) {
+  void assertIsNumber(Item... values) {
     for (var item : values) {
       if (!item.is(Double.class)) {
         throw new RuntimeError(item.position(), "Operand must be a number");
@@ -215,7 +256,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     }
   }
 
-  private Void execute(Stmt stmt) {
+  Void execute(Stmt stmt) {
     return stmt.accept(this);
   }
 
@@ -232,20 +273,6 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
       ERR_HNDLR.report(issue);
     }
-  }
-
-  private String stringify(@Nullable Object obj) {
-    if (obj == null) {
-      return "nil";
-    }
-
-    var text = obj.toString();
-
-    if (obj instanceof Double && text.endsWith(".0")) {
-      text = text.substring(0, text.length() - 2);
-    }
-
-    return text;
   }
 
   @Override
@@ -297,7 +324,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     return null;
   }
 
-  private Void executeBlock(List<Stmt> statements, Environment newEnv) {
+  Void executeBlock(List<Stmt> statements, Environment newEnv) {
     var prevEnv = this.env;
 
     try {
@@ -315,7 +342,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   }
 
   @Override
-  public Void visitIfStmt(If stmt) {
+  public Void visitIfStmt(Stmt.If stmt) {
     if (this.isTruthy(this.evaluate(stmt.condition))) {
       this.execute(stmt.thenBranch);
     } else if (stmt.elseBranch != null) {
@@ -325,7 +352,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   }
 
   @Override
-  public Item visitLogicalExpr(Logical expr) {
+  public Item visitLogicalExpr(Expr.Logical expr) {
     var left = this.evaluate(expr.left);
 
     if (expr.operator.type() == TokenType.OR) {
@@ -338,7 +365,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   }
 
   @Override
-  public Void visitWhileStmt(While stmt) {
+  public Void visitWhileStmt(Stmt.While stmt) {
     while (isTruthy(evaluate(stmt.condition))) {
       execute(stmt.body);
     }
@@ -348,7 +375,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
   @Override
   @SuppressWarnings("nullness")
-  public Item visitCallExpr(Call expr) {
+  public Item visitCallExpr(Expr.Call expr) {
     var callee = this.evaluate(expr.callee);
 
     var args = new ArrayList<>();
@@ -356,16 +383,40 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
       args.add(this.evaluate(arg).result());
     }
 
-    if (callee.result() instanceof LoxCallable function && args.size() == function.arity()) {
-      return new Item(function.call(this, args), expr.paren.position());
+    if (callee.result() instanceof LoxCallable function) {
+      if (args.size() == function.arity()) {
+        return new Item(function.call(this, args), expr.paren.position());
+      } else {
+        throw new RuntimeError(
+            expr.paren.position(),
+            "Number of passed args ("
+                + args.size()
+                + ") not equal to expected number ("
+                + function.arity()
+                + ")");
+      }
     }
 
     throw new RuntimeError(expr.paren.position(), "Can only call functions and classess");
   }
 
   @Override
-  public Void visitFunctionStmt(Function stmt) {
-    // TODO Auto-generated method stub
+  public Void visitFunctionStmt(Stmt.Function stmt) {
+    var function = new LoxFunction(stmt.name, stmt.function, this.env);
+    this.env.define(stmt.name.lexeme(), function);
+
     return null;
+  }
+
+  @Override
+  public Void visitReturnStmt(Stmt.Return stmt) {
+    var value = stmt.value == null ? null : this.evaluate(stmt.value);
+
+    throw new Return(value != null ? value.result() : null);
+  }
+
+  @Override
+  public Item visitFnExpr(Expr.Fn expr) {
+    return new Item(new LoxFunction(expr, this.env), expr.pos);
   }
 }
