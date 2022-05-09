@@ -164,4 +164,5 @@ let glbl = "global";
   showA();
   let glbl = "block";
   showA();
+  print(glbl);
 }

@@ -8,6 +8,7 @@ import com.dylmay.jlox.error.LoxErrorHandler;
 import com.dylmay.jlox.interpreter.Interpreter;
 import com.dylmay.jlox.lexer.Lexer;
 import com.dylmay.jlox.parser.Parser;
+import com.dylmay.jlox.resolver.Resolver;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,11 +18,14 @@ import java.nio.file.Paths;
 
 public class Lox {
   private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance("LoxMain");
-  private static final Interpreter interpreter = new Interpreter();
+  private static final Interpreter INTERPRETER = new Interpreter();
 
   private static final int GOOD_EXIT = 0;
   private static final int HELP_EXIT = 64;
   private static final int EXC_EXIT = 65;
+  private static final int LEXER_FAIL_EXIT = 67;
+  private static final int PARSER_FAIL_EXIT = 68;
+  private static final int RESOLVER_FAIL_EXIT = 69;
   private static final int INTERPRET_FAIL_EXIT = 70;
 
   private Lox() {}
@@ -38,6 +42,12 @@ public class Lox {
 
     if (ERR_HNDLR.hasError()) {
       exit(EXC_EXIT);
+    } else if (LoxErrorHandler.getInstance(Lexer.class).hasError()) {
+      exit(LEXER_FAIL_EXIT);
+    } else if (LoxErrorHandler.getInstance(Parser.class).hasError()) {
+      exit(PARSER_FAIL_EXIT);
+    } else if (LoxErrorHandler.getInstance(Resolver.class).hasError()) {
+      exit(RESOLVER_FAIL_EXIT);
     } else if (LoxErrorHandler.getInstance(Interpreter.class).hasError()) {
       exit(INTERPRET_FAIL_EXIT);
     } else {
@@ -65,7 +75,12 @@ public class Lox {
     var expr = new Parser(tokens).parse();
     if (LoxErrorHandler.getInstance(Parser.class).hasError()) return;
 
-    interpreter.interpret(expr);
+    var resolver = new Resolver(INTERPRETER);
+    resolver.resolve(expr);
+
+    if (LoxErrorHandler.getInstance(Resolver.class).hasError()) return;
+
+    INTERPRETER.interpret(expr);
   }
 
   public static void runPrompt() {

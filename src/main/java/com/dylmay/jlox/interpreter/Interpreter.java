@@ -2,8 +2,8 @@ package com.dylmay.jlox.interpreter;
 
 import com.dylmay.jlox.assets.Expr;
 import com.dylmay.jlox.assets.Item;
-import com.dylmay.jlox.assets.Position;
 import com.dylmay.jlox.assets.Stmt;
+import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
 import com.dylmay.jlox.error.LoxErrorHandler;
@@ -12,16 +12,26 @@ import com.dylmay.jlox.interpreter.call.Continue;
 import com.dylmay.jlox.interpreter.call.Return;
 import com.dylmay.jlox.util.RuntimeError;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance(Interpreter.class);
 
+  private final Environment globals;
   private Environment env;
+  private Map<Expr, Integer> locals;
 
   public Interpreter() {
-    this.env = Global.create();
+    this.globals = Global.create();
+    this.env = globals;
+    this.locals = new HashMap<>();
+  }
+
+  public void resolve(Expr expr, int depth) {
+    locals.put(expr, depth);
   }
 
   @Override
@@ -204,17 +214,32 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
   @Override
   public Item visitVariableExpr(Expr.Variable expr) {
-    return new Item(this.env.get(expr.name), Position.NO_POSITION);
+    return new Item(this.lookupVariable(expr.name, expr), expr.name.position());
+  }
+
+  private @Nullable Object lookupVariable(Token name, Expr expr) {
+    var dist = this.locals.get(expr);
+
+    return (dist != null) ? this.env.getAt(dist, name.lexeme()) : this.globals.get(name);
   }
 
   @Override
   public Item visitAssignExpr(Expr.Assign expr) {
     var value = this.evaluate(expr.value);
+    var result = value != null ? value.result() : null;
 
-    if (!this.env.assign(expr.name.lexeme(), value != null ? value.result() : null)) {
-      throw new RuntimeError(
-          expr.name.position(), "Undefined variable '" + expr.name.lexeme() + "'.");
+    var dist = locals.get(expr);
+
+    if (dist != null) {
+      env.assignAt(dist, expr.name.lexeme(), result);
+    } else {
+      globals.assign(expr.name.lexeme(), result);
     }
+
+    // if (!this.env.assign(expr.name.lexeme(), value != null ? value.result() : null)) {
+    //   throw new RuntimeError(
+    //       expr.name.position(), "Undefined variable '" + expr.name.lexeme() + "'.");
+    // }
 
     return value;
   }

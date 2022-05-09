@@ -36,6 +36,22 @@ class Environment {
     throw new RuntimeError(name.position(), "Undefined variable '" + name.lexeme() + "'.");
   }
 
+  @Nullable
+  Object getAt(int dist, String name) {
+    return ancestor(dist).values.get(name);
+  }
+
+  @SuppressWarnings("nullness")
+  Environment ancestor(int dist) {
+    var env = this;
+
+    for (int i = 0; i < dist; i++) {
+      env = env.parent;
+    }
+
+    return env;
+  }
+
   @SuppressWarnings("nullness")
   boolean define(String name, @Nullable Object value) {
     if (!this.values.containsKey(name)) {
@@ -59,5 +75,10 @@ class Environment {
     }
 
     return false;
+  }
+
+  @SuppressWarnings("nullness")
+  void assignAt(int dist, String name, @Nullable Object value) {
+    ancestor(dist).values.put(name, value);
   }
 }
