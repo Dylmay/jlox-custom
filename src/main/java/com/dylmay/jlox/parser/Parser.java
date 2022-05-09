@@ -48,7 +48,7 @@ public class Parser {
       }
 
       if (match(TokenType.FN)) {
-        return function("function");
+        return stmtFunction();
       }
 
       return statement();
@@ -77,10 +77,10 @@ public class Parser {
     return new Expr.Fn(funcTkn.position(), parms, this.block());
   }
 
-  private Stmt function(String kind) {
-    var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
+  private Stmt stmtFunction() {
+    var name = consume(TokenType.IDENTIFIER, "Expected function name.");
 
-    return new Stmt.Function(name, this.exprFn(kind));
+    return new Stmt.Var(name, this.exprFn("function"));
   }
 
   private Stmt varDeclaration() {

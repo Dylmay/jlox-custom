@@ -7,8 +7,6 @@ public abstract class Stmt {
   public interface Visitor<R> {
     R visitExpressionStmt(Expression stmt);
 
-    R visitFunctionStmt(Function stmt);
-
     @Nullable
     R visitVarStmt(Var stmt);
 
@@ -54,46 +52,6 @@ public abstract class Stmt {
       int result = 1;
 
       result = prime * result + ((expr == null) ? 0 : expr.hashCode());
-
-      return result;
-    }
-  }
-
-  public static class Function extends Stmt {
-    public final Token name;
-    public final Expr.Fn function;
-
-    public Function(Token name, Expr.Fn function) {
-      this.name = name;
-      this.function = function;
-    }
-
-    @Override
-    public <R> R accept(Visitor<R> visitor) {
-      return visitor.visitFunctionStmt(this);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-      if (this == obj) return true;
-
-      if (obj instanceof Function i) {
-        return this.name != null
-            && this.name.equals(i.name)
-            && this.function != null
-            && this.function.equals(i.function);
-      }
-
-      return false;
-    }
-
-    @Override
-    public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-
-      result = prime * result + ((name == null) ? 0 : name.hashCode());
-      result = prime * result + ((function == null) ? 0 : function.hashCode());
 
       return result;
     }

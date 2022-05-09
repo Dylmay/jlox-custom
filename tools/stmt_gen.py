@@ -12,13 +12,6 @@ def gen_stmt():
     tokens = [
         Token("Expression", [Parameter("Expr", "expr")]),
         Token(
-            "Function",
-            [
-                Parameter("Token", "name"),
-                Parameter("Expr.Fn", "function"),
-            ],
-        ),
-        Token(
             "Var",
             [
                 Parameter("Token", "name"),

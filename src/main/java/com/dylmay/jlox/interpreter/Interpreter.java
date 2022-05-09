@@ -401,14 +401,6 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   }
 
   @Override
-  public Void visitFunctionStmt(Stmt.Function stmt) {
-    var function = new LoxFunction(stmt.name, stmt.function, this.env);
-    this.env.define(stmt.name.lexeme(), function);
-
-    return null;
-  }
-
-  @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
     var value = stmt.value == null ? null : this.evaluate(stmt.value);
 
