@@ -68,8 +68,17 @@ public class Parser {
     var methods = new ArrayList<Stmt.Var>();
 
     while (!check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
-      consume(TokenType.FN, "Expected method declaration");
-      methods.add((Stmt.Var) this.stmtFunction("method"));
+      if (match(TokenType.FN)) {
+        methods.add((Stmt.Var) this.stmtFunction("method"));
+      } else if (match(TokenType.LET)) {
+        methods.add((Stmt.Var) this.varDeclaration());
+      } else {
+        ERR_HDNLR.report(
+            new ErrorMessage()
+                .where(this.peek().lexeme())
+                .position(this.peek().position())
+                .message("Expected declaration"));
+      }
     }
 
     consume(TokenType.RIGHT_BRACE, "Expected '}' at class end.");
@@ -368,6 +377,10 @@ public class Parser {
   private Expr primary() {
     if (match(TokenType.FALSE)) {
       return new Expr.Literal(false, this.previous().position());
+    }
+
+    if (match(TokenType.THIS)) {
+      return new Expr.This(this.previous());
     }
 
     if (match(TokenType.TRUE)) {

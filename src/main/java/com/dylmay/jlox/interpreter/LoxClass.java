@@ -8,10 +8,12 @@ public class LoxClass implements LoxCallable {
   final String name;
 
   private final Map<String, LoxFunction> methods;
+  final Map<String, Object> defines;
 
-  LoxClass(String name, Map<String, LoxFunction> methods) {
+  LoxClass(String name, Map<String, LoxFunction> methods, Map<String, Object> defines) {
     this.name = name;
     this.methods = methods;
+    this.defines = defines;
   }
 
   @Override

@@ -3,6 +3,7 @@ package com.dylmay.jlox.interpreter;
 import com.dylmay.jlox.assets.Expr;
 import com.dylmay.jlox.assets.Expr.Get;
 import com.dylmay.jlox.assets.Expr.Set;
+import com.dylmay.jlox.assets.Expr.This;
 import com.dylmay.jlox.assets.Item;
 import com.dylmay.jlox.assets.Stmt;
 import com.dylmay.jlox.assets.Stmt.Class;
@@ -358,17 +359,23 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public Void visitClassStmt(Class stmt) {
     this.env.define(stmt.name.lexeme(), null);
 
     var methods = new HashMap<String, LoxFunction>();
+    var fields = new HashMap<String, Object>();
     for (var decl : stmt.decls) {
       if (decl.initializer instanceof Expr.Fn method) {
         methods.put(decl.name.lexeme(), new LoxFunction(method, this.env));
+      } else if (decl.initializer instanceof Expr.Literal literal) {
+        fields.put(decl.name.lexeme(), this.evaluate(literal).result());
+      } else {
+        throw new RuntimeError(decl.name.position(), "Unknown class declaration type");
       }
     }
 
-    var cls = new LoxClass(stmt.name.lexeme(), methods);
+    var cls = new LoxClass(stmt.name.lexeme(), methods, fields);
     this.env.assign(stmt.name.lexeme(), cls);
     return null;
   }
@@ -386,6 +393,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public Item visitSetExpr(Set expr) {
     var obj = evaluate(expr.object);
     var res = obj != null ? obj.result() : null;
@@ -393,9 +401,14 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     if (res instanceof LoxInstance inst) {
       var value = evaluate(expr.value);
 
-      inst.set(expr.name, value);
+      return new Item(inst.set(expr.name, value.result()), expr.name.position());
     }
 
     throw new RuntimeError(expr.name.position(), "Only instances have properties");
+  }
+
+  @Override
+  public Item visitThisExpr(This expr) {
+    return new Item(lookupVariable(expr.keyword, expr), expr.keyword.position());
   }
 }

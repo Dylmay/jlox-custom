@@ -22,6 +22,13 @@ class LoxFunction implements LoxCallable {
     this(new Token(TokenType.FN, "fn", "Anonymous", Position.NO_POSITION), decl, closure);
   }
 
+  LoxFunction bind(LoxInstance inst) {
+    var env = new Environment(closure);
+    env.define("this", inst);
+
+    return new LoxFunction(this.fn, env);
+  }
+
   @Override
   @SuppressWarnings("nullness")
   public Object call(Interpreter interpreter, List<Object> args) {

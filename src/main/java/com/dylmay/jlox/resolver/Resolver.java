@@ -301,12 +301,18 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public Void visitClassStmt(Class stmt) {
     declare(stmt.name, false);
+
+    beginScope();
+    scopes.peek().put("this", new VariableDefine(true, false));
 
     for (var decl : stmt.decls) {
       if (decl.initializer instanceof Expr.Fn method) {
         resolveFunction(method, FunctionType.METHOD);
+      } else if (decl.initializer instanceof Expr.Literal literal) {
+        resolve(literal);
       } else {
         ERR_HNDLR.report(
             new ErrorMessage()
@@ -315,6 +321,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
                 .message("Unknown class declaration type"));
       }
     }
+
+    endScope();
 
     define(stmt.name);
     return null;
@@ -330,6 +338,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   public Void visitSetExpr(Expr.Set expr) {
     resolve(expr.value);
     resolve(expr.object);
+    return null;
+  }
+
+  @Override
+  public Void visitThisExpr(Expr.This expr) {
+    resolveLocal(expr, expr.keyword);
     return null;
   }
 

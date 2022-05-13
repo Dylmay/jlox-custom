@@ -18,6 +18,8 @@ public abstract class Expr {
 
     R visitUnaryExpr(Unary expr);
 
+    R visitThisExpr(This expr);
+
     R visitVariableExpr(Variable expr);
 
     R visitAssignExpr(Assign expr);
@@ -277,6 +279,40 @@ public abstract class Expr {
 
       result = prime * result + ((operator == null) ? 0 : operator.hashCode());
       result = prime * result + ((right == null) ? 0 : right.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class This extends Expr {
+    public final Token keyword;
+
+    public This(Token keyword) {
+      this.keyword = keyword;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitThisExpr(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof This i) {
+        return this.keyword != null && this.keyword.equals(i.keyword);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((keyword == null) ? 0 : keyword.hashCode());
 
       return result;
     }

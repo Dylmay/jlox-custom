@@ -41,6 +41,7 @@ def gen_expr():
             [Parameter("Object", "value", True), Parameter("Position", "pos")],
         ),
         Token("Unary", [Parameter("Token", "operator"), Parameter("Expr", "right")]),
+        Token("This", [Parameter("Token", "keyword")]),
         Token("Variable", [Parameter("Token", "name")]),
         Token("Assign", [Parameter("Token", "name"), Parameter("Expr", "value")]),
         Token(

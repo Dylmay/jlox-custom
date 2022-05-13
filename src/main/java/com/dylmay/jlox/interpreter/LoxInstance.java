@@ -13,7 +13,7 @@ public class LoxInstance {
 
   LoxInstance(LoxClass cls) {
     this.cls = cls;
-    this.fields = new HashMap<>();
+    this.fields = new HashMap<>(cls.defines);
   }
 
   @Override
@@ -29,7 +29,7 @@ public class LoxInstance {
 
     var method = cls.findMethod(name.lexeme());
     if (method != null) {
-      return method;
+      return method.bind(this);
     }
 
     throw new RuntimeError(name.position(), "Undefined property '" + name + "''.");
