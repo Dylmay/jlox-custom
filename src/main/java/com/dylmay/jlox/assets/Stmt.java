@@ -23,6 +23,8 @@ public abstract class Stmt {
     R visitBreakStmt(Break stmt);
 
     R visitContinueStmt(Continue stmt);
+
+    R visitClassStmt(Class stmt);
   }
 
   public abstract <R> R accept(Visitor<R> visitor);
@@ -64,10 +66,12 @@ public abstract class Stmt {
   public static class Var extends Stmt {
     public final Token name;
     public final @Nullable Expr initializer;
+    public final boolean mutable;
 
-    public Var(Token name, @Nullable Expr initializer) {
+    public Var(Token name, @Nullable Expr initializer, boolean mutable) {
       this.name = name;
       this.initializer = initializer;
+      this.mutable = mutable;
     }
 
     @Override
@@ -83,7 +87,8 @@ public abstract class Stmt {
         return this.name != null
             && this.name.equals(i.name)
             && this.initializer != null
-            && this.initializer.equals(i.initializer);
+            && this.initializer.equals(i.initializer)
+            && this.mutable == i.mutable;
       }
 
       return false;
@@ -323,6 +328,46 @@ public abstract class Stmt {
       int result = 1;
 
       result = prime * result + ((keyword == null) ? 0 : keyword.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Class extends Stmt {
+    public final Token name;
+    public final List<Stmt.Var> decls;
+
+    public Class(Token name, List<Stmt.Var> decls) {
+      this.name = name;
+      this.decls = decls;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitClassStmt(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Class i) {
+        return this.name != null
+            && this.name.equals(i.name)
+            && this.decls != null
+            && this.decls.equals(i.decls);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((name == null) ? 0 : name.hashCode());
+      result = prime * result + ((decls == null) ? 0 : decls.hashCode());
 
       return result;
     }

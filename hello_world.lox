@@ -51,14 +51,14 @@ if (true) {
   print(variable);
 }
 
-let count = 0;
+let mut count = 0;
 while count < 10 {
   print(count);
   count += 1;
   print(count);
 }
 
-for let i = 0; i < 10; i += 1 {
+for let mut i = 0; i < 10; i += 1 {
   print("helol");
 }
 
@@ -72,9 +72,9 @@ if false {
 
 print(nil or "yes");
 
-let value = 1;
-let temp;
-for let b = 1; value < 10000; b += temp {
+let mut value = 1;
+let mut temp;
+for let mut b = 1; value < 10000; b += temp {
   print(value);
   temp = value;
   value = b;
@@ -106,7 +106,7 @@ print(fib(2));
 print(fib(20));
 
 fn makeCounter() {
-  let i = 0;
+  let mut i = 0;
 
   fn count() {
     i += 1;
@@ -127,6 +127,7 @@ fn thrice(func) {
   }
 }
 
+
 fn printer(val) {
   print("Val: " + str(val));
 }
@@ -144,11 +145,11 @@ let assignFunc = fn (abc) {
 
 print(assignFunc("hello"));
 
-let outsideVal = "val";
+let mut outsideVal = "val";
 outsideVal = "valb";
 
 let editVal = fn (val) {
-  val = "new val";
+  // val = "new val";
 
   print(val);
 };
@@ -166,3 +167,37 @@ let glbl = "global";
   showA();
   print(glbl);
 }
+
+fn empty() {}
+
+class MyClass {
+  fn helloWorld() {
+    print("Hello World!!@!");
+  }
+}
+
+print(MyClass);
+print(MyClass());
+MyClass().helloWorld();
+
+let clz = MyClass();
+let helloCall = clz.helloWorld;
+clz.helloWorld();
+helloCall();
+clz.helloWorld();
+MyClass().helloWorld();
+empty();
+
+// empty = fn () {
+//   print("abc");
+// };
+
+empty();
+
+let mut newValueConst = 100;
+{
+  newValueConst = 10;
+}
+print(newValueConst);
+
+print("abc");

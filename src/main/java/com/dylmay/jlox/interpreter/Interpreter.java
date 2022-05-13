@@ -1,8 +1,11 @@
 package com.dylmay.jlox.interpreter;
 
 import com.dylmay.jlox.assets.Expr;
+import com.dylmay.jlox.assets.Expr.Get;
+import com.dylmay.jlox.assets.Expr.Set;
 import com.dylmay.jlox.assets.Item;
 import com.dylmay.jlox.assets.Stmt;
+import com.dylmay.jlox.assets.Stmt.Class;
 import com.dylmay.jlox.assets.Token;
 import com.dylmay.jlox.assets.TokenType;
 import com.dylmay.jlox.error.ErrorMessage;
@@ -352,5 +355,47 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   @Override
   public Void visitContinueStmt(com.dylmay.jlox.assets.Stmt.Continue stmt) {
     throw new Continue();
+  }
+
+  @Override
+  public Void visitClassStmt(Class stmt) {
+    this.env.define(stmt.name.lexeme(), null);
+
+    var methods = new HashMap<String, LoxFunction>();
+    for (var decl : stmt.decls) {
+      if (decl.initializer instanceof Expr.Fn method) {
+        methods.put(decl.name.lexeme(), new LoxFunction(method, this.env));
+      }
+    }
+
+    var cls = new LoxClass(stmt.name.lexeme(), methods);
+    this.env.assign(stmt.name.lexeme(), cls);
+    return null;
+  }
+
+  @Override
+  public Item visitGetExpr(Get expr) {
+    var obj = evaluate(expr.object);
+    var res = obj != null ? obj.result() : null;
+
+    if (res instanceof LoxInstance inst) {
+      return new Item(inst.get(expr.name), expr.name.position());
+    }
+
+    throw new RuntimeError(expr.name.position(), "Only instances have properties");
+  }
+
+  @Override
+  public Item visitSetExpr(Set expr) {
+    var obj = evaluate(expr.object);
+    var res = obj != null ? obj.result() : null;
+
+    if (res instanceof LoxInstance inst) {
+      var value = evaluate(expr.value);
+
+      inst.set(expr.name, value);
+    }
+
+    throw new RuntimeError(expr.name.position(), "Only instances have properties");
   }
 }

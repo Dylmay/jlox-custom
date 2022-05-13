@@ -25,6 +25,10 @@ public abstract class Expr {
     R visitLogicalExpr(Logical expr);
 
     R visitFnExpr(Fn expr);
+
+    R visitGetExpr(Get expr);
+
+    R visitSetExpr(Set expr);
   }
 
   public abstract <R> R accept(Visitor<R> visitor);
@@ -437,6 +441,91 @@ public abstract class Expr {
       result = prime * result + ((pos == null) ? 0 : pos.hashCode());
       result = prime * result + ((parms == null) ? 0 : parms.hashCode());
       result = prime * result + ((body == null) ? 0 : body.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Get extends Expr {
+    public final Expr object;
+    public final Token name;
+
+    public Get(Expr object, Token name) {
+      this.object = object;
+      this.name = name;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitGetExpr(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Get i) {
+        return this.object != null
+            && this.object.equals(i.object)
+            && this.name != null
+            && this.name.equals(i.name);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((object == null) ? 0 : object.hashCode());
+      result = prime * result + ((name == null) ? 0 : name.hashCode());
+
+      return result;
+    }
+  }
+
+  public static class Set extends Expr {
+    public final Expr object;
+    public final Token name;
+    public final Expr value;
+
+    public Set(Expr object, Token name, Expr value) {
+      this.object = object;
+      this.name = name;
+      this.value = value;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitSetExpr(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (this == obj) return true;
+
+      if (obj instanceof Set i) {
+        return this.object != null
+            && this.object.equals(i.object)
+            && this.name != null
+            && this.name.equals(i.name)
+            && this.value != null
+            && this.value.equals(i.value);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+
+      result = prime * result + ((object == null) ? 0 : object.hashCode());
+      result = prime * result + ((name == null) ? 0 : name.hashCode());
+      result = prime * result + ((value == null) ? 0 : value.hashCode());
 
       return result;
     }

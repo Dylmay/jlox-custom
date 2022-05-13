@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from ast import Param
 from ast_gen import Token, Parameter, gen_ast
 
 
@@ -58,6 +59,8 @@ def gen_expr():
                 Parameter("List<Stmt>", "body"),
             ],
         ),
+        Token("Get", [Parameter("Expr", "object"), Parameter("Token", "name")]),
+        Token("Set", [Parameter("Expr", "object"), Parameter("Token", "name"), Parameter("Expr", "value"),])
     ]
 
     gen_ast(class_name, tokens, import_list, out_path, package_name)

@@ -11,6 +11,7 @@ import com.dylmay.jlox.assets.Expr.Ternary;
 import com.dylmay.jlox.assets.Expr.Unary;
 import com.dylmay.jlox.assets.Stmt;
 import com.dylmay.jlox.assets.Stmt.Break;
+import com.dylmay.jlox.assets.Stmt.Class;
 import com.dylmay.jlox.assets.Stmt.Continue;
 import com.dylmay.jlox.assets.Stmt.Expression;
 import com.dylmay.jlox.assets.Stmt.If;
@@ -30,18 +31,20 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private static final LoxErrorHandler ERR_HNDLR = LoxErrorHandler.getInstance(Resolver.class);
 
   private final Interpreter interpreter;
-  private final Deque<Map<String, Boolean>> scopes;
+  private final Deque<Map<String, VariableDefine>> scopes;
   private FunctionType curFunction = FunctionType.NONE;
 
   private enum FunctionType {
     NONE,
     FUNCTION,
     WHILE,
+    METHOD,
   }
 
   public Resolver(Interpreter interpreter) {
     this.interpreter = interpreter;
     this.scopes = new ArrayDeque<>();
+    this.scopes.push(new HashMap<>());
   }
 
   @Override
@@ -55,7 +58,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitVarStmt(Stmt.Var stmt) {
-    declare(stmt.name);
+    declare(stmt.name, stmt.mutable);
     if (stmt.initializer != null) {
       resolve(stmt.initializer);
     }
@@ -67,7 +70,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   @SuppressWarnings("nullness")
   public Void visitVariableExpr(Expr.Variable expr) {
-    if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme()) == Boolean.FALSE) {
+    if (!scopes.isEmpty()
+        && scopes.peek().get(expr.name.lexeme()) != null
+        && !scopes.peek().get(expr.name.lexeme()).isDefined) {
       ERR_HNDLR.report(
           new ErrorMessage().message("Can't read local variable in its own initializer."));
     }
@@ -78,9 +83,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public Void visitAssignExpr(Expr.Assign expr) {
     resolve(expr.value);
     resolveLocal(expr, expr.name);
+
+    if (this.scopes.peek().containsKey(expr.name.lexeme())
+        && !this.scopes.peek().get(expr.name.lexeme()).isMutable) {
+      ERR_HNDLR.report(
+          new ErrorMessage()
+              .where(expr.name.lexeme())
+              .position(expr.name.position())
+              .message("mutable variables must be declared with 'let mut'."));
+    }
 
     return null;
   }
@@ -104,7 +119,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitReturnStmt(Return stmt) {
     if (this.curFunction == FunctionType.NONE) {
-      ERR_HNDLR.report(new ErrorMessage().position(stmt.keyword.position()).message("Can't return from top-level code"));
+      ERR_HNDLR.report(
+          new ErrorMessage()
+              .position(stmt.keyword.position())
+              .message("Can't return from top-level code"));
     }
 
     if (stmt.value != null) {
@@ -238,7 +256,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     beginScope();
     for (var parm : func.parms) {
-      declare(parm);
+      declare(parm, false);
       define(parm);
     }
     resolve(func.body);
@@ -256,21 +274,72 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   }
 
   @SuppressWarnings("nullness")
-  private void declare(Token name) {
+  private void declare(Token name, boolean isMutable) {
     if (scopes.isEmpty()) return;
 
     var scope = scopes.peek();
     if (scope.containsKey(name.lexeme())) {
-      ERR_HNDLR.report(new ErrorMessage().position(name.position()).where(name.lexeme()).message("Already a variable with this name in this scope"));
+      ERR_HNDLR.report(
+          new ErrorMessage()
+              .position(name.position())
+              .where(name.lexeme())
+              .message("Already a variable with this name in this scope"));
     }
 
-    scopes.peek().put(name.lexeme(), false);
+    scopes.peek().put(name.lexeme(), new VariableDefine(false, isMutable));
   }
 
   @SuppressWarnings("nullness")
   private void define(Token name) {
     if (scopes.isEmpty()) return;
 
-    scopes.peek().put(name.lexeme(), true);
+    if (scopes.peek().containsKey(name.lexeme())) {
+      scopes.peek().get(name.lexeme()).isDefined = true;
+    } else {
+      scopes.peek().put(name.lexeme(), new VariableDefine(true, false));
+    }
+  }
+
+  @Override
+  public Void visitClassStmt(Class stmt) {
+    declare(stmt.name, false);
+
+    for (var decl : stmt.decls) {
+      if (decl.initializer instanceof Expr.Fn method) {
+        resolveFunction(method, FunctionType.METHOD);
+      } else {
+        ERR_HNDLR.report(
+            new ErrorMessage()
+                .position(decl.name.position())
+                .where(decl.name.lexeme())
+                .message("Unknown class declaration type"));
+      }
+    }
+
+    define(stmt.name);
+    return null;
+  }
+
+  @Override
+  public Void visitGetExpr(Expr.Get expr) {
+    resolve(expr.object);
+    return null;
+  }
+
+  @Override
+  public Void visitSetExpr(Expr.Set expr) {
+    resolve(expr.value);
+    resolve(expr.object);
+    return null;
+  }
+
+  private static class VariableDefine {
+    boolean isDefined;
+    boolean isMutable;
+
+    public VariableDefine(boolean isDefined, boolean isMutable) {
+      this.isDefined = isDefined;
+      this.isMutable = isMutable;
+    }
   }
 }

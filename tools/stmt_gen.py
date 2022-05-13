@@ -16,6 +16,7 @@ def gen_stmt():
             [
                 Parameter("Token", "name"),
                 Parameter("Expr", "initializer", True),
+                Parameter("boolean", "mutable"),
             ],
         ),
         Token("Block", [Parameter("List<Stmt>", "stmts")]),
@@ -33,6 +34,7 @@ def gen_stmt():
         Token("While", [Parameter("Expr", "condition"), Parameter("Stmt", "body")]),
         Token("Break", [Parameter("Token", "keyword")]),
         Token("Continue", [Parameter("Token", "keyword")]),
+        Token("Class", [Parameter("Token", "name"), Parameter("List<Stmt.Var>", "decls")]),
     ]
 
     gen_ast(class_name, tokens, import_list, out_path, package_name)

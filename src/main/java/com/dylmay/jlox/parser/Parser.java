@@ -47,8 +47,12 @@ public class Parser {
         return this.varDeclaration();
       }
 
+      if (match(TokenType.CLASS)) {
+        return this.classDeclaration();
+      }
+
       if (match(TokenType.FN)) {
-        return stmtFunction();
+        return stmtFunction("function");
       }
 
       return statement();
@@ -56,6 +60,21 @@ public class Parser {
       this.synchronize();
       return null;
     }
+  }
+
+  private Stmt classDeclaration() {
+    var name = consume(TokenType.IDENTIFIER, "Expected class name.");
+    consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
+    var methods = new ArrayList<Stmt.Var>();
+
+    while (!check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      consume(TokenType.FN, "Expected method declaration");
+      methods.add((Stmt.Var) this.stmtFunction("method"));
+    }
+
+    consume(TokenType.RIGHT_BRACE, "Expected '}' at class end.");
+
+    return new Stmt.Class(name, methods);
   }
 
   private Expr.Fn exprFn(String kind) {
@@ -77,19 +96,23 @@ public class Parser {
     return new Expr.Fn(funcTkn.position(), parms, this.block());
   }
 
-  private Stmt stmtFunction() {
-    var name = consume(TokenType.IDENTIFIER, "Expected function name.");
+  private Stmt stmtFunction(String kind) {
+    var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
 
-    return new Stmt.Var(name, this.exprFn("function"));
+    var isMutable = match(TokenType.MUT);
+
+    return new Stmt.Var(name, this.exprFn(kind), isMutable);
   }
 
   private Stmt varDeclaration() {
+    var isMutable = match(TokenType.MUT);
+
     Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
     Expr initializer = match(TokenType.EQUAL) ? expression() : null;
 
     consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
 
-    return new Stmt.Var(name, initializer);
+    return new Stmt.Var(name, initializer, isMutable);
   }
 
   private Stmt statement() {
@@ -227,7 +250,7 @@ public class Parser {
   private Expr assignment() {
     var expr = this.ternary();
 
-    if (expr instanceof Expr.Variable variable
+    if ((expr instanceof Expr.Variable || expr instanceof Expr.Get)
         && match(
             TokenType.STAR_EQUAL,
             TokenType.MINUS_EQUAL,
@@ -240,26 +263,22 @@ public class Parser {
       switch (token.type()) {
         case STAR_EQUAL:
           value =
-              new Expr.Binary(
-                  variable, new Token(TokenType.STAR, "*", null, token.position()), value);
+              new Expr.Binary(expr, new Token(TokenType.STAR, "*", null, token.position()), value);
           break;
 
         case SLASH_EQUAL:
           value =
-              new Expr.Binary(
-                  variable, new Token(TokenType.SLASH, "/", null, token.position()), value);
+              new Expr.Binary(expr, new Token(TokenType.SLASH, "/", null, token.position()), value);
           break;
 
         case MINUS_EQUAL:
           value =
-              new Expr.Binary(
-                  variable, new Token(TokenType.MINUS, "-", null, token.position()), value);
+              new Expr.Binary(expr, new Token(TokenType.MINUS, "-", null, token.position()), value);
           break;
 
         case PLUS_EQUAL:
           value =
-              new Expr.Binary(
-                  variable, new Token(TokenType.PLUS, "+", null, token.position()), value);
+              new Expr.Binary(expr, new Token(TokenType.PLUS, "+", null, token.position()), value);
           break;
 
         case EQUAL:
@@ -270,7 +289,11 @@ public class Parser {
           break;
       }
 
-      return new Expr.Assign(variable.name, value);
+      if (expr instanceof Expr.Variable variable) {
+        return new Expr.Assign(variable.name, value);
+      } else if (expr instanceof Expr.Get get) {
+        return new Expr.Set(get.object, get.name, value);
+      }
     }
 
     return expr;
@@ -311,8 +334,15 @@ public class Parser {
   private Expr call() {
     var expr = this.primary();
 
-    while (match(TokenType.LEFT_PAREN)) {
-      expr = finishCall(expr);
+    while (true) {
+      if (match(TokenType.LEFT_PAREN)) {
+        expr = finishCall(expr);
+      } else if (match(TokenType.DOT)) {
+        var name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+        expr = new Expr.Get(expr, name);
+      } else {
+        break;
+      }
     }
 
     return expr;
