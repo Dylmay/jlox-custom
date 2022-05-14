@@ -12,21 +12,28 @@ class LoxFunction implements LoxCallable {
   private final Expr.Fn fn;
   private final Environment closure;
 
-  LoxFunction(Token nameTkn, Expr.Fn decl, Environment closure) {
+  private final boolean isInitializer;
+
+  LoxFunction(Token nameTkn, Expr.Fn decl, Environment closure, boolean isInitializer) {
     this.name = nameTkn;
     this.fn = decl;
     this.closure = closure;
+    this.isInitializer = isInitializer;
   }
 
-  LoxFunction(Expr.Fn decl, Environment closure) {
-    this(new Token(TokenType.FN, "fn", "Anonymous", Position.NO_POSITION), decl, closure);
+  LoxFunction(Expr.Fn decl, Environment closure, boolean isInitializer) {
+    this(
+        new Token(TokenType.FN, "fn", "Anonymous", Position.NO_POSITION),
+        decl,
+        closure,
+        isInitializer);
   }
 
   LoxFunction bind(LoxInstance inst) {
     var env = new Environment(closure);
-    env.define("this", inst);
+    env.define("self", inst);
 
-    return new LoxFunction(this.fn, env);
+    return new LoxFunction(this.fn, env, this.isInitializer);
   }
 
   @Override
@@ -40,9 +47,10 @@ class LoxFunction implements LoxCallable {
     try {
       interpreter.executeBlock(fn.body, env);
     } catch (Return retval) {
-      return retval.value;
+      return (this.isInitializer) ? closure.getAt(0, "this") : retval.value;
     }
 
+    if (isInitializer) return closure.getAt(0, "this");
     return null;
   }
 

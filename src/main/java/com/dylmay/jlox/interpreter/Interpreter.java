@@ -345,7 +345,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
   @Override
   public Item visitFnExpr(Expr.Fn expr) {
-    return new Item(new LoxFunction(expr, this.env), expr.pos);
+    return new Item(new LoxFunction(expr, this.env, false), expr.pos);
   }
 
   @Override
@@ -367,7 +367,9 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
     var fields = new HashMap<String, Object>();
     for (var decl : stmt.decls) {
       if (decl.initializer instanceof Expr.Fn method) {
-        methods.put(decl.name.lexeme(), new LoxFunction(method, this.env));
+        methods.put(
+            decl.name.lexeme(),
+            new LoxFunction(method, this.env, decl.name.lexeme().equals("init")));
       } else if (decl.initializer instanceof Expr.Literal literal) {
         fields.put(decl.name.lexeme(), this.evaluate(literal).result());
       } else {

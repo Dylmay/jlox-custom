@@ -7,9 +7,14 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 public class LoxInstance {
-  private LoxClass cls;
+  @Nullable LoxClass cls;
 
-  private final Map<String, Object> fields;
+  final Map<String, Object> fields;
+
+  LoxInstance() {
+    this.cls = null;
+    this.fields = new HashMap<>();
+  }
 
   LoxInstance(LoxClass cls) {
     this.cls = cls;
@@ -17,11 +22,13 @@ public class LoxInstance {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public String toString() {
     return cls.name + " instance";
   }
 
   @Nullable
+  @SuppressWarnings("nullness")
   Object get(Token name) {
     if (fields.containsKey(name.lexeme())) {
       return fields.get(name.lexeme());

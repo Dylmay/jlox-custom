@@ -22,7 +22,7 @@ class TokenKeywords {
     KEYWORDS.put("nil", TokenType.NIL);
     KEYWORDS.put("or", TokenType.OR);
     KEYWORDS.put("super", TokenType.SUPER);
-    KEYWORDS.put("this", TokenType.THIS);
+    KEYWORDS.put("self", TokenType.THIS);
     KEYWORDS.put("true", TokenType.TRUE);
     KEYWORDS.put("let", TokenType.LET);
     KEYWORDS.put("while", TokenType.WHILE);

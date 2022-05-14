@@ -54,6 +54,7 @@ public enum TokenType {
   CONTINUE,
   BREAK,
   MUT,
+  STATIC,
 
   EOF,
 }

@@ -33,7 +33,7 @@ class Environment {
       return this.parent.get(name);
     }
 
-    throw new RuntimeError(name.position(), "Undefined variable '" + name.lexeme() + "'.");
+    throw new RuntimeError(name.position(), "Undefined variable '" + name.lexeme() + "'");
   }
 
   @Nullable

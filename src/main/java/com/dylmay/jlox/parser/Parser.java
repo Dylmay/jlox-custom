@@ -78,6 +78,8 @@ public class Parser {
                 .where(this.peek().lexeme())
                 .position(this.peek().position())
                 .message("Expected declaration"));
+
+        this.advance();
       }
     }
 

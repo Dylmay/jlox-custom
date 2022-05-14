@@ -33,12 +33,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final Interpreter interpreter;
   private final Deque<Map<String, VariableDefine>> scopes;
   private FunctionType curFunction = FunctionType.NONE;
+  private ClassType curClass = ClassType.NONE;
 
   private enum FunctionType {
     NONE,
     FUNCTION,
     WHILE,
     METHOD,
+    INITIALIZER,
+  }
+
+  private enum ClassType {
+    NONE,
+    CLASS,
   }
 
   public Resolver(Interpreter interpreter) {
@@ -126,6 +133,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     if (stmt.value != null) {
+      if (this.curFunction == FunctionType.INITIALIZER) {
+        ERR_HNDLR.report(
+            new ErrorMessage()
+                .position(stmt.keyword.position())
+                .where(stmt.keyword.lexeme())
+                .message("Can't return a value from an initializer"));
+      }
+
       resolve(stmt.value);
     }
     return null;
@@ -304,13 +319,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @SuppressWarnings("nullness")
   public Void visitClassStmt(Class stmt) {
     declare(stmt.name, false);
+    var lastClass = this.curClass;
 
     beginScope();
-    scopes.peek().put("this", new VariableDefine(true, false));
+    this.curClass = ClassType.CLASS;
+    scopes.peek().put("self", new VariableDefine(true, false));
 
     for (var decl : stmt.decls) {
       if (decl.initializer instanceof Expr.Fn method) {
-        resolveFunction(method, FunctionType.METHOD);
+        resolveFunction(
+            method,
+            decl.name.lexeme().equals("init") ? FunctionType.INITIALIZER : FunctionType.METHOD);
       } else if (decl.initializer instanceof Expr.Literal literal) {
         resolve(literal);
       } else {
@@ -324,6 +343,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     endScope();
 
+    this.curClass = lastClass;
     define(stmt.name);
     return null;
   }
@@ -344,6 +364,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitThisExpr(Expr.This expr) {
     resolveLocal(expr, expr.keyword);
+    if (curClass == ClassType.NONE) {
+      ERR_HNDLR.report(
+          new ErrorMessage()
+              .message("Can't use 'self' outside of a class")
+              .position(expr.keyword.position()));
+    }
     return null;
   }
 
