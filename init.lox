@@ -1,0 +1,36 @@
+class LoxClass {
+    let value = 100;
+
+    fn init() {
+        print(self);
+    }
+
+    fn printVal() {
+        print(self.value);
+    }
+}
+
+let cls = LoxClass();
+cls.printVal();
+
+class Math {
+    let CONST = 10;
+
+    fn square(n) {
+        return n * n;
+    }
+
+    fn printVal() {
+        print(self.CONST);
+        print(Math.CONST);
+    }
+}
+
+let math = Math();
+print(math.square(10));
+
+math.printVal();
+Math.printVal();
+
+print(Math.square(10));
+print(Math.square(Math.CONST));
