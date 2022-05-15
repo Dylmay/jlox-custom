@@ -30,6 +30,7 @@ class TokenKeywords {
     KEYWORDS.put("continue", TokenType.CONTINUE);
     KEYWORDS.put("break", TokenType.BREAK);
     KEYWORDS.put("mut", TokenType.MUT);
+    KEYWORDS.put("static", TokenType.STATIC);
   }
 
   public static @Nullable TokenType match(String reservedWord) {

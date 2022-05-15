@@ -67,11 +67,13 @@ public abstract class Stmt {
     public final Token name;
     public final @Nullable Expr initializer;
     public final boolean mutable;
+    public final boolean isStatic;
 
-    public Var(Token name, @Nullable Expr initializer, boolean mutable) {
+    public Var(Token name, @Nullable Expr initializer, boolean mutable, boolean isStatic) {
       this.name = name;
       this.initializer = initializer;
       this.mutable = mutable;
+      this.isStatic = isStatic;
     }
 
     @Override
@@ -88,7 +90,8 @@ public abstract class Stmt {
             && this.name.equals(i.name)
             && this.initializer != null
             && this.initializer.equals(i.initializer)
-            && this.mutable == i.mutable;
+            && this.mutable == i.mutable
+            && this.isStatic == i.isStatic;
       }
 
       return false;

@@ -44,7 +44,7 @@ public class Parser {
   private @Nullable Stmt declaration() {
     try {
       if (match(TokenType.LET)) {
-        return this.varDeclaration();
+        return this.varDeclaration(false);
       }
 
       if (match(TokenType.CLASS)) {
@@ -52,7 +52,7 @@ public class Parser {
       }
 
       if (match(TokenType.FN)) {
-        return stmtFunction("function");
+        return stmtFunction("function", false);
       }
 
       return statement();
@@ -68,10 +68,12 @@ public class Parser {
     var methods = new ArrayList<Stmt.Var>();
 
     while (!check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      var isStatic = match(TokenType.STATIC);
+
       if (match(TokenType.FN)) {
-        methods.add((Stmt.Var) this.stmtFunction("method"));
+        methods.add((Stmt.Var) this.stmtFunction("method", isStatic));
       } else if (match(TokenType.LET)) {
-        methods.add((Stmt.Var) this.varDeclaration());
+        methods.add((Stmt.Var) this.varDeclaration(isStatic));
       } else {
         ERR_HDNLR.report(
             new ErrorMessage()
@@ -107,15 +109,15 @@ public class Parser {
     return new Expr.Fn(funcTkn.position(), parms, this.block());
   }
 
-  private Stmt stmtFunction(String kind) {
+  private Stmt stmtFunction(String kind, boolean isStatic) {
     var name = consume(TokenType.IDENTIFIER, "Expected " + kind + " name.");
 
     var isMutable = match(TokenType.MUT);
 
-    return new Stmt.Var(name, this.exprFn(kind), isMutable);
+    return new Stmt.Var(name, this.exprFn(kind), isMutable, isStatic);
   }
 
-  private Stmt varDeclaration() {
+  private Stmt varDeclaration(boolean isStatic) {
     var isMutable = match(TokenType.MUT);
 
     Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
@@ -123,7 +125,7 @@ public class Parser {
 
     consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
 
-    return new Stmt.Var(name, initializer, isMutable);
+    return new Stmt.Var(name, initializer, isMutable, isStatic);
   }
 
   private Stmt statement() {
@@ -167,7 +169,7 @@ public class Parser {
     if (match(TokenType.SEMICOLON)) {
       initializer = null;
     } else if (match(TokenType.LET)) {
-      initializer = varDeclaration();
+      initializer = varDeclaration(false);
     } else {
       initializer = expressionStatement();
     }

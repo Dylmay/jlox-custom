@@ -10,6 +10,11 @@ Parameter = namedtuple(
 )
 Token = namedtuple("Token", ["name", "params"])
 
+PRIMITIVES = (
+    "int",
+    "boolean",
+)
+
 
 def has_nullable(token):
     return any(map(lambda param: param.nullable, token.params))
@@ -42,7 +47,9 @@ def create_class(token: Parameter, access_level: str, class_name: str) -> str:
             "return "
             + "\n   && ".join(
                 map(
-                    lambda assign: f"this.{assign.name} != null && this.{assign.name}.equals(i.{assign.name})",
+                    lambda assign: f"this.{assign.name} != null && this.{assign.name}.equals(i.{assign.name})"
+                    if assign.type not in PRIMITIVES
+                    else f"this.{assign.name} == i.{assign.name}",
                     token.params,
                 )
             )
@@ -53,7 +60,7 @@ def create_class(token: Parameter, access_level: str, class_name: str) -> str:
         return "\n".join(
             map(
                 lambda assign: f"result = prime * result + (({assign.name} == null) ? 0 : {assign.name}.hashCode());",
-                token.params,
+                filter(lambda param: param.type not in PRIMITIVES, token.params),
             )
         )
 

@@ -17,6 +17,7 @@ import com.dylmay.jlox.interpreter.call.Return;
 import com.dylmay.jlox.util.RuntimeError;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -365,19 +366,28 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
 
     var methods = new HashMap<String, LoxFunction>();
     var fields = new HashMap<String, Object>();
+    var statics = new HashSet<String>();
     for (var decl : stmt.decls) {
       if (decl.initializer instanceof Expr.Fn method) {
         methods.put(
             decl.name.lexeme(),
             new LoxFunction(method, this.env, decl.name.lexeme().equals("init")));
+
+        if (decl.isStatic) {
+          statics.add((decl.name.lexeme()));
+        }
       } else if (decl.initializer instanceof Expr.Literal literal) {
         fields.put(decl.name.lexeme(), this.evaluate(literal).result());
+
+        if (decl.isStatic) {
+          statics.add(decl.name.lexeme());
+        }
       } else {
         throw new RuntimeError(decl.name.position(), "Unknown class declaration type");
       }
     }
 
-    var cls = new LoxClass(stmt.name.lexeme(), methods, fields);
+    var cls = new LoxClass(stmt.name.lexeme(), methods, fields, statics);
     this.env.assign(stmt.name.lexeme(), cls);
     return null;
   }

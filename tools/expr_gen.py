@@ -61,7 +61,14 @@ def gen_expr():
             ],
         ),
         Token("Get", [Parameter("Expr", "object"), Parameter("Token", "name")]),
-        Token("Set", [Parameter("Expr", "object"), Parameter("Token", "name"), Parameter("Expr", "value"),])
+        Token(
+            "Set",
+            [
+                Parameter("Expr", "object"),
+                Parameter("Token", "name"),
+                Parameter("Expr", "value"),
+            ],
+        ),
     ]
 
     gen_ast(class_name, tokens, import_list, out_path, package_name)

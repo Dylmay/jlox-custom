@@ -14,15 +14,18 @@ let cls = LoxClass();
 cls.printVal();
 
 class Math {
-    let CONST = 10;
+    static let CONST = 10;
+    static let mut variable = 100;
 
-    fn square(n) {
+    static fn square(n) {
         return n * n;
     }
 
-    fn printVal() {
-        print(self.CONST);
+    static fn printVal() {
+        print("--------------");
         print(Math.CONST);
+        print(Math.variable);
+        print("==============");
     }
 }
 
@@ -30,7 +33,9 @@ let math = Math();
 print(math.square(10));
 
 math.printVal();
-Math.printVal();
 
 print(Math.square(10));
 print(Math.square(Math.CONST));
+print(Math.variable);
+Math.variable = 10;
+math.printVal();

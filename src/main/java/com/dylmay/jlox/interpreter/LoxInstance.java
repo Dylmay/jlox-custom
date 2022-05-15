@@ -7,10 +7,11 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 public class LoxInstance {
-  @Nullable LoxClass cls;
+  LoxClass cls;
 
-  final Map<String, Object> fields;
+  Map<String, Object> fields;
 
+  @SuppressWarnings("nullness")
   LoxInstance() {
     this.cls = null;
     this.fields = new HashMap<>();
@@ -30,6 +31,10 @@ public class LoxInstance {
   @Nullable
   @SuppressWarnings("nullness")
   Object get(Token name) {
+    if (cls.isStatic(name)) {
+      return cls.get(name);
+    }
+
     if (fields.containsKey(name.lexeme())) {
       return fields.get(name.lexeme());
     }
@@ -39,15 +44,19 @@ public class LoxInstance {
       return method.bind(this);
     }
 
-    throw new RuntimeError(name.position(), "Undefined property '" + name + "''.");
+    throw new RuntimeError(name.position(), "Undefined property '" + name.lexeme() + "'");
   }
 
   @Nullable
   Object set(Token name, Object value) {
+    if (cls.isStatic(name)) {
+      return cls.set(name, value);
+    }
+
     if (fields.containsKey(name.lexeme())) {
       return fields.put(name.lexeme(), value);
     }
 
-    throw new RuntimeError(name.position(), "Undefined property '" + name + "''.");
+    throw new RuntimeError(name.position(), "Undefined property '" + name.lexeme() + "'");
   }
 }

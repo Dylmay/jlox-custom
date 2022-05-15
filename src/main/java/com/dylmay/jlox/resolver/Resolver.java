@@ -32,6 +32,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   private final Interpreter interpreter;
   private final Deque<Map<String, VariableDefine>> scopes;
+  private boolean isStatic;
+
   private FunctionType curFunction = FunctionType.NONE;
   private ClassType curClass = ClassType.NONE;
 
@@ -52,6 +54,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     this.interpreter = interpreter;
     this.scopes = new ArrayDeque<>();
     this.scopes.push(new HashMap<>());
+    this.isStatic = false;
   }
 
   @Override
@@ -326,6 +329,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     scopes.peek().put("self", new VariableDefine(true, false));
 
     for (var decl : stmt.decls) {
+      this.isStatic = decl.isStatic;
+
       if (decl.initializer instanceof Expr.Fn method) {
         resolveFunction(
             method,
@@ -368,6 +373,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       ERR_HNDLR.report(
           new ErrorMessage()
               .message("Can't use 'self' outside of a class")
+              .position(expr.keyword.position()));
+    }
+    if (isStatic) {
+      ERR_HNDLR.report(
+          new ErrorMessage()
+              .message("Can't use 'self' within a static expression")
               .position(expr.keyword.position()));
     }
     return null;
