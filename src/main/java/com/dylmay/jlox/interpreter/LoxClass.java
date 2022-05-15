@@ -9,10 +9,10 @@ import javax.annotation.Nullable;
 
 public class LoxClass extends LoxInstance implements LoxCallable {
   final String name;
+  final @Nullable LoxClass superClass;
 
   private final Map<String, LoxFunction> methods;
   final Map<String, Object> defines;
-
   final Set<String> statics;
 
   @SuppressWarnings("assignment")
@@ -20,12 +20,14 @@ public class LoxClass extends LoxInstance implements LoxCallable {
       String name,
       Map<String, LoxFunction> methods,
       Map<String, Object> defines,
-      Set<String> statics) {
+      Set<String> statics,
+      @Nullable LoxClass superClass) {
     this.name = name;
     this.methods = methods;
     this.defines = defines;
     this.statics = statics;
     this.cls = this;
+    this.superClass = superClass;
   }
 
   @Override
@@ -55,7 +57,7 @@ public class LoxClass extends LoxInstance implements LoxCallable {
   @SuppressWarnings("nullness")
   @Nullable
   LoxFunction findMethod(String name) {
-    return methods.getOrDefault(name, null);
+    return methods.getOrDefault(name, superClass != null ? superClass.findMethod(name) : null);
   }
 
   boolean isStatic(Token name) {
@@ -67,6 +69,10 @@ public class LoxClass extends LoxInstance implements LoxCallable {
   @Override
   Object get(Token name) {
     if (!this.isStatic(name)) {
+      if (this.superClass != null) {
+        return this.superClass.get(name);
+      }
+
       throw new RuntimeError(name.position(), "Undefined static " + name.lexeme() + "'");
     }
 

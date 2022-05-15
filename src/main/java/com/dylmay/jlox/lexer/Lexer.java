@@ -93,7 +93,7 @@ public class Lexer {
         break;
 
       case ':':
-        this.addToken(TokenType.TERNARY_SPLIT);
+        this.addToken(TokenType.COLON);
         break;
 
       case '!':

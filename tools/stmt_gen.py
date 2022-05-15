@@ -36,7 +36,12 @@ def gen_stmt():
         Token("Break", [Parameter("Token", "keyword")]),
         Token("Continue", [Parameter("Token", "keyword")]),
         Token(
-            "Class", [Parameter("Token", "name"), Parameter("List<Stmt.Var>", "decls")]
+            "Class",
+            [
+                Parameter("Token", "name"),
+                Parameter("List<Stmt.Var>", "decls"),
+                Parameter("Expr.Variable", "superclass", True),
+            ],
         ),
     ]
 

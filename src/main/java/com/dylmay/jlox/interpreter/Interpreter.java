@@ -362,6 +362,18 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
   @Override
   @SuppressWarnings("nullness")
   public Void visitClassStmt(Class stmt) {
+    LoxClass superclass = null;
+
+    if (stmt.superclass != null) {
+      var superEval = this.evaluate(stmt.superclass);
+
+      if (superEval == null || !(superEval.result() instanceof LoxClass)) {
+        throw new RuntimeError(stmt.superclass.name.position(), "Superclass must be a class");
+      }
+
+      superclass = superEval.as(LoxClass.class);
+    }
+
     this.env.define(stmt.name.lexeme(), null);
 
     var methods = new HashMap<String, LoxFunction>();
@@ -387,7 +399,7 @@ public class Interpreter implements Expr.Visitor<Item>, Stmt.Visitor<Void> {
       }
     }
 
-    var cls = new LoxClass(stmt.name.lexeme(), methods, fields, statics);
+    var cls = new LoxClass(stmt.name.lexeme(), methods, fields, statics, superclass);
     this.env.assign(stmt.name.lexeme(), cls);
     return null;
   }

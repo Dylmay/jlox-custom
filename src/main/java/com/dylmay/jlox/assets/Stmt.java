@@ -24,6 +24,7 @@ public abstract class Stmt {
 
     R visitContinueStmt(Continue stmt);
 
+    @Nullable
     R visitClassStmt(Class stmt);
   }
 
@@ -339,14 +340,16 @@ public abstract class Stmt {
   public static class Class extends Stmt {
     public final Token name;
     public final List<Stmt.Var> decls;
+    public final @Nullable Expr.Variable superclass;
 
-    public Class(Token name, List<Stmt.Var> decls) {
+    public Class(Token name, List<Stmt.Var> decls, @Nullable Expr.Variable superclass) {
       this.name = name;
       this.decls = decls;
+      this.superclass = superclass;
     }
 
     @Override
-    public <R> R accept(Visitor<R> visitor) {
+    public <R> @Nullable R accept(Visitor<R> visitor) {
       return visitor.visitClassStmt(this);
     }
 
@@ -358,7 +361,9 @@ public abstract class Stmt {
         return this.name != null
             && this.name.equals(i.name)
             && this.decls != null
-            && this.decls.equals(i.decls);
+            && this.decls.equals(i.decls)
+            && this.superclass != null
+            && this.superclass.equals(i.superclass);
       }
 
       return false;
@@ -371,6 +376,7 @@ public abstract class Stmt {
 
       result = prime * result + ((name == null) ? 0 : name.hashCode());
       result = prime * result + ((decls == null) ? 0 : decls.hashCode());
+      result = prime * result + ((superclass == null) ? 0 : superclass.hashCode());
 
       return result;
     }

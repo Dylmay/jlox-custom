@@ -324,6 +324,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     declare(stmt.name, false);
     var lastClass = this.curClass;
 
+    if (stmt.superclass != null) {
+      if (stmt.name.lexeme().equals(stmt.superclass.name.lexeme())) {
+        ERR_HNDLR.report(
+            new ErrorMessage()
+                .message("A class cannot inherit from itself")
+                .position(stmt.superclass.name.position()));
+      }
+
+      resolve(stmt.superclass);
+    }
+
     beginScope();
     this.curClass = ClassType.CLASS;
     scopes.peek().put("self", new VariableDefine(true, false));

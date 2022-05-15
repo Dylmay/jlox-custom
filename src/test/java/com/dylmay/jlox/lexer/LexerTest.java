@@ -35,7 +35,7 @@ public class LexerTest {
       new Token(TokenType.GREATER, ">", null, new Position(1, 26)),
       new Token(TokenType.EQUAL, "=", null, new Position(1, 28)),
       new Token(TokenType.TERNARY, "?", null, new Position(1, 30)),
-      new Token(TokenType.TERNARY_SPLIT, ":", null, new Position(1, 32)),
+      new Token(TokenType.COLON, ":", null, new Position(1, 32)),
       new Token(TokenType.EOF, "\n", null, new Position(2, 0))
     };
 
@@ -220,7 +220,7 @@ public class LexerTest {
       new Token(TokenType.RIGHT_PAREN, ")", null, new Position(21, 34)),
       new Token(TokenType.TERNARY, "?", null, new Position(22, 8)),
       new Token(TokenType.NUMBER, "0", 0d, new Position(22, 10)),
-      new Token(TokenType.TERNARY_SPLIT, ":", null, new Position(23, 8)),
+      new Token(TokenType.COLON, ":", null, new Position(23, 8)),
       new Token(TokenType.NUMBER, "1", 1d, new Position(23, 10)),
       new Token(TokenType.SEMICOLON, ";", null, new Position(23, 11)),
       new Token(TokenType.RIGHT_BRACE, "}", null, new Position(24, 2)),

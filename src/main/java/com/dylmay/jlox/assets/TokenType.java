@@ -14,7 +14,7 @@ public enum TokenType {
   SLASH,
   STAR,
   TERNARY,
-  TERNARY_SPLIT,
+  COLON,
 
   // Multi char tokens
   BANG,

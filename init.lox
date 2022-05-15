@@ -29,6 +29,12 @@ class Math {
     }
 }
 
+class NewMath : Math {
+    static fn add(a, b) {
+        return a + b;
+    }
+}
+
 let math = Math();
 print(math.square(10));
 
@@ -39,3 +45,6 @@ print(Math.square(Math.CONST));
 print(Math.variable);
 Math.variable = 10;
 math.printVal();
+
+NewMath.printVal();
+print(NewMath.add(10, 10));

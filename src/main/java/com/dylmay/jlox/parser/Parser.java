@@ -64,6 +64,13 @@ public class Parser {
 
   private Stmt classDeclaration() {
     var name = consume(TokenType.IDENTIFIER, "Expected class name.");
+
+    Expr.Variable superclass = null;
+    if (match(TokenType.COLON)) {
+      consume(TokenType.IDENTIFIER, "Expected superclass name.");
+      superclass = new Expr.Variable(this.previous());
+    }
+
     consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
     var methods = new ArrayList<Stmt.Var>();
 
@@ -87,7 +94,7 @@ public class Parser {
 
     consume(TokenType.RIGHT_BRACE, "Expected '}' at class end.");
 
-    return new Stmt.Class(name, methods);
+    return new Stmt.Class(name, methods, superclass);
   }
 
   private Expr.Fn exprFn(String kind) {
@@ -467,7 +474,7 @@ public class Parser {
     if (match(TokenType.TERNARY)) {
       var onTrue = this.expression();
 
-      if (match(TokenType.TERNARY_SPLIT)) {
+      if (match(TokenType.COLON)) {
         var onFalse = this.expression();
 
         return new Expr.Ternary(expr, onTrue, onFalse);
